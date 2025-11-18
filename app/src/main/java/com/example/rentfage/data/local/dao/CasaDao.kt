@@ -9,7 +9,7 @@ import androidx.room.Update
 import com.example.rentfage.data.local.entity.CasaEntity
 import kotlinx.coroutines.flow.Flow
 
-// DAO (Data Access Object) para la tabla de casas.
+// DAO (Data Access Object) para la tabla de Casas.
 @Dao
 interface CasaDao {
 
