@@ -27,6 +27,7 @@ import androidx.navigation.navArgument
 import com.example.rentfage.data.local.database.AppDatabase
 import com.example.rentfage.data.local.storage.UserPreferences
 import com.example.rentfage.data.repository.CasasRepository
+import com.example.rentfage.data.repository.UserRepository
 import com.example.rentfage.ui.components.AppDrawer
 import com.example.rentfage.ui.components.AppTopBar
 import com.example.rentfage.ui.components.defaultDrawerItems
@@ -36,6 +37,8 @@ import com.example.rentfage.ui.viewmodel.CasasViewModel
 import com.example.rentfage.ui.viewmodel.CasasViewModelFactory
 import com.example.rentfage.ui.viewmodel.HistorialViewModel
 import com.example.rentfage.ui.viewmodel.PerfilViewModel
+import com.example.rentfage.ui.viewmodel.UserViewModel
+import com.example.rentfage.ui.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
 
 @Composable
@@ -64,6 +67,11 @@ fun AppNavGraph(navController: NavHostController) {
     val casasViewModelFactory = remember { CasasViewModelFactory(casasRepository) }
     val casasViewModel: CasasViewModel = viewModel(factory = casasViewModelFactory)
 
+    // Crear y compartir el ViewModel de Usuarios
+    val userRepository = remember { UserRepository(database.userDao()) }
+    val userViewModelFactory = remember { UserViewModelFactory(userRepository) }
+    val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
+
     val showTopBar = currentRoute != "login" && currentRoute != "register"
 
     // --- ACCIONES DE NAVEGACIÓN ---
@@ -79,6 +87,7 @@ fun AppNavGraph(navController: NavHostController) {
     val goAdminDashboard: () -> Unit = { navController.navigate("admin_dashboard") }
     val goAdminPropertyList: () -> Unit = { navController.navigate("admin_property_list") }
     val goAdminSolicitudes: () -> Unit = { navController.navigate("admin_solicitudes") }
+    val goAdminUserList: () -> Unit = { navController.navigate("admin_user_list") } // Nueva acción
     val onHouseClick: (Int) -> Unit = { casaId -> navController.navigate("detalle_casa/$casaId") }
     val onNavigateBack: () -> Unit = { navController.popBackStack() }
     val goAddEditProperty: (Int?) -> Unit = { casaId ->
@@ -139,7 +148,8 @@ fun AppNavGraph(navController: NavHostController) {
                     AdminDashboardScreen(
                         casasViewModel = casasViewModel,
                         onGoToPropertyList = goAdminPropertyList,
-                        onGoToSolicitudes = goAdminSolicitudes
+                        onGoToSolicitudes = goAdminSolicitudes,
+                        onGoToUserList = goAdminUserList
                     )
                 }
 
@@ -164,6 +174,7 @@ fun AppNavGraph(navController: NavHostController) {
                 }
 
                 composable("admin_solicitudes") { AdminSolicitudesScreen(historialViewModel = historialViewModel) }
+                composable("admin_user_list") { AdminUsuario(userViewModel = userViewModel) } // Ruta actualizada
 
                 // --- OTRAS RUTAS ---
                 composable("edit_profile") { editarperfilScreen(perfilViewModel = perfilViewModel, onSaveChanges = onNavigateBack) }

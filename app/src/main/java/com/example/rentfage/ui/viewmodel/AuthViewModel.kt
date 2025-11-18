@@ -1,14 +1,10 @@
 package com.example.rentfage.ui.viewmodel
 
 import android.app.Application
+import android.util.Patterns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.rentfage.data.local.storage.UserPreferences
-import com.example.rentfage.domain.validation.validateConfirm
-import com.example.rentfage.domain.validation.validateEmail
-import com.example.rentfage.domain.validation.validateNameLettersOnly
-import com.example.rentfage.domain.validation.validatePhoneDigitsOnly
-import com.example.rentfage.domain.validation.validateStrongPassword
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -86,6 +82,36 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val _changePassword = MutableStateFlow(ChangePasswordUiState())
     val changePassword: StateFlow<ChangePasswordUiState> = _changePassword
 
+    // --- VALIDACIÓN ---
+    private fun validateName(name: String): String? {
+        if (name.isBlank()) return "El nombre no puede estar vacío."
+        if (name.any { it.isDigit() }) return "El nombre no puede contener números."
+        return null
+    }
+
+    private fun validateEmail(email: String): String? {
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) return "El formato del correo no es válido."
+        return null
+    }
+
+    private fun validatePhone(phone: String): String? {
+        if (phone.length != 9) return "El teléfono debe tener 9 dígitos."
+        return null
+    }
+
+    private fun validateStrongPassword(pass: String): String? {
+        if (pass.length < 8) return "Mínimo 8 caracteres."
+        if (!pass.any { it.isDigit() }) return "Debe contener al menos un número."
+        if (!pass.any { it.isUpperCase() }) return "Debe contener al menos una mayúscula."
+        if (!pass.any { !it.isLetterOrDigit() }) return "Debe contener al menos un símbolo."
+        return null
+    }
+
+    private fun validateConfirmPassword(pass: String, confirm: String): String? {
+        if (pass != confirm) return "Las contraseñas no coinciden."
+        return null
+    }
+
     // --- LOGIN ---
     fun onLoginEmailChange(value: String) {
         _login.update { it.copy(email = value, emailError = validateEmail(value)) }
@@ -145,7 +171,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     // --- REGISTRO ---
     fun onNameChange(value: String) {
         val filtered = value.filter { it.isLetter() || it.isWhitespace() }
-        _register.update { it.copy(name = filtered, nameError = validateNameLettersOnly(filtered)) }
+        _register.update { it.copy(name = filtered, nameError = validateName(filtered)) }
         recomputeRegisterCanSubmit()
     }
 
@@ -155,19 +181,19 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun onPhoneChange(value: String) {
-        val digitsOnly = value.filter { it.isDigit() }
-        _register.update { it.copy(phone = digitsOnly, phoneError = validatePhoneDigitsOnly(digitsOnly)) }
+        val digitsOnly = value.filter { it.isDigit() }.take(9)
+        _register.update { it.copy(phone = digitsOnly, phoneError = validatePhone(digitsOnly)) }
         recomputeRegisterCanSubmit()
     }
-
+	
     fun onRegisterPassChange(value: String) {
         _register.update { it.copy(pass = value, passError = validateStrongPassword(value)) }
-        _register.update { it.copy(confirmError = validateConfirm(it.pass, it.confirm)) }
+        _register.update { it.copy(confirmError = validateConfirmPassword(it.pass, it.confirm)) }
         recomputeRegisterCanSubmit()
     }
 
     fun onConfirmChange(value: String) {
-        _register.update { it.copy(confirm = value, confirmError = validateConfirm(it.pass, value)) }
+        _register.update { it.copy(confirm = value, confirmError = validateConfirmPassword(it.pass, value)) }
         recomputeRegisterCanSubmit()
     }
 
@@ -212,18 +238,18 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     // --- CAMBIAR CONTRASEÑA ---
     fun onCurrentPasswordChange(value: String) {
-        _changePassword.update { it.copy(currentPassword = value, currentPasswordError = null) } // Novedad: Se limpia el error al escribir.
+        _changePassword.update { it.copy(currentPassword = value, currentPasswordError = null) } 
         recomputeChangePasswordCanSubmit()
     }
 
     fun onNewPasswordChange(value: String) {
         _changePassword.update { it.copy(newPassword = value, newPasswordError = validateStrongPassword(value)) }
-        _changePassword.update { it.copy(confirmNewPasswordError = validateConfirm(it.newPassword, it.confirmNewPassword)) }
+        _changePassword.update { it.copy(confirmNewPasswordError = validateConfirmPassword(it.newPassword, it.confirmNewPassword)) }
         recomputeChangePasswordCanSubmit()
     }
 
     fun onConfirmNewPasswordChange(value: String) {
-        _changePassword.update { it.copy(confirmNewPassword = value, confirmNewPasswordError = validateConfirm(it.newPassword, value)) }
+        _changePassword.update { it.copy(confirmNewPassword = value, confirmNewPasswordError = validateConfirmPassword(it.newPassword, value)) }
         recomputeChangePasswordCanSubmit()
     }
 

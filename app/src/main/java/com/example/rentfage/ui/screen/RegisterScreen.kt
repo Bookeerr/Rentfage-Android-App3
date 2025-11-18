@@ -1,5 +1,6 @@
 package com.example.rentfage.ui.screen
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -30,25 +31,21 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.rentfage.R
 import com.example.rentfage.ui.viewmodel.AuthViewModel
 
-// Composable "ViewModel" que gestiona la lógica y el estado de la pantalla de registro.
 @Composable
 fun RegisterScreenVm(
-    authViewModel: AuthViewModel, // Se recibe la instancia compartida del ViewModel de autenticación.
+    authViewModel: AuthViewModel, 
     onRegisteredNavigateLogin: () -> Unit,
     onGoLogin: () -> Unit
 ) {
-    // Recoge el estado de la UI del flujo de registro en el ViewModel.
     val state by authViewModel.register.collectAsStateWithLifecycle()
 
-    // Efecto que se dispara cuando el registro es exitoso para navegar a la pantalla de login.
     LaunchedEffect(state.success) {
         if (state.success) {
-            authViewModel.clearRegisterResult() // Limpia el estado para evitar la navegación al volver.
+            authViewModel.clearRegisterResult()
             onRegisteredNavigateLogin()
         }
     }
 
-    // Llama al composable de la UI, pasándole el estado y las acciones.
     RegisterScreen(
         name = state.name,
         email = state.email,
@@ -73,7 +70,6 @@ fun RegisterScreenVm(
     )
 }
 
-// Composable que define la interfaz de usuario (UI) de la pantalla de registro.
 @Composable
 private fun RegisterScreen(
     name: String,
@@ -97,7 +93,6 @@ private fun RegisterScreen(
     onSubmit: () -> Unit,
     onGoLogin: () -> Unit
 ) {
-    // Estados para controlar la visibilidad de las contraseñas.
     var showPass by remember { mutableStateOf(false) }
     var showConfirm by remember { mutableStateOf(false) }
 
@@ -111,7 +106,7 @@ private fun RegisterScreen(
     ) {
         Icon(
             imageVector = Icons.Filled.PersonAdd,
-            contentDescription = null, // Icono decorativo.
+            contentDescription = null,
             modifier = Modifier.size(64.dp),
             tint = MaterialTheme.colorScheme.primary
         )
@@ -123,20 +118,20 @@ private fun RegisterScreen(
         )
         Spacer(Modifier.height(24.dp))
 
-        // Campo de texto para el nombre.
         OutlinedTextField(
             value = name,
             onValueChange = onNameChange,
             label = { Text(stringResource(R.string.register_name_label)) },
             singleLine = true,
             isError = nameError != null,
-            supportingText = { 
-                nameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            supportingText = {
+                AnimatedVisibility(visible = nameError != null) {
+                    Text(nameError ?: "", color = MaterialTheme.colorScheme.error)
+                }
             },
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Campo de texto para el email.
         OutlinedTextField(
             value = email,
             onValueChange = onEmailChange,
@@ -145,12 +140,13 @@ private fun RegisterScreen(
             isError = emailError != null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             supportingText = {
-                emailError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                AnimatedVisibility(visible = emailError != null) {
+                    Text(emailError ?: "", color = MaterialTheme.colorScheme.error)
+                }
             },
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Campo de texto para el teléfono.
         OutlinedTextField(
             value = phone,
             onValueChange = onPhoneChange,
@@ -159,12 +155,13 @@ private fun RegisterScreen(
             isError = phoneError != null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             supportingText = {
-                phoneError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                AnimatedVisibility(visible = phoneError != null) {
+                    Text(phoneError ?: "", color = MaterialTheme.colorScheme.error)
+                }
             },
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Campo de texto para la contraseña.
         OutlinedTextField(
             value = pass,
             onValueChange = onPassChange,
@@ -181,12 +178,13 @@ private fun RegisterScreen(
                 }
             },
             supportingText = {
-                passError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                AnimatedVisibility(visible = passError != null) {
+                    Text(passError ?: "", color = MaterialTheme.colorScheme.error)
+                }
             },
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Campo de texto para confirmar la contraseña.
         OutlinedTextField(
             value = confirm,
             onValueChange = onConfirmChange,
@@ -203,14 +201,15 @@ private fun RegisterScreen(
                 }
             },
             supportingText = {
-                confirmError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                AnimatedVisibility(visible = confirmError != null) {
+                    Text(confirmError ?: "", color = MaterialTheme.colorScheme.error)
+                }
             },
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(Modifier.height(24.dp))
 
-        // Botón principal para enviar el formulario de registro.
         Button(
             onClick = onSubmit,
             enabled = canSubmit && !isSubmitting,
@@ -232,7 +231,6 @@ private fun RegisterScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        // Botón secundario para navegar a la pantalla de login.
         OutlinedButton(onClick = onGoLogin, modifier = Modifier.fillMaxWidth().height(48.dp)) {
             Text(stringResource(R.string.register_go_to_login_button))
         }

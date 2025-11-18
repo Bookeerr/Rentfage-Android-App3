@@ -26,7 +26,8 @@ import com.example.rentfage.ui.viewmodel.CasasViewModel
 fun AdminDashboardScreen(
     casasViewModel: CasasViewModel,
     onGoToPropertyList: () -> Unit,
-    onGoToSolicitudes: () -> Unit
+    onGoToSolicitudes: () -> Unit,
+    onGoToUserList: () -> Unit
 ) {
     val casasState by casasViewModel.uiState.collectAsState()
     val totalCasas = casasState.casas.size
@@ -71,6 +72,10 @@ fun AdminDashboardScreen(
                 Button(onClick = onGoToSolicitudes, modifier = Modifier.fillMaxWidth()) {
                     Text("Gestionar Solicitudes")
                 }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = onGoToUserList, modifier = Modifier.fillMaxWidth()) {
+                    Text("Gestionar Usuarios")
+                }
             }
         }
     }
@@ -83,6 +88,7 @@ fun AdminDashboardScreenPreview() {
     AdminDashboardScreen(
         casasViewModel = casasViewModel,
         onGoToPropertyList = {},
-        onGoToSolicitudes = {}
+        onGoToSolicitudes = {},
+        onGoToUserList = {}
     )
 }

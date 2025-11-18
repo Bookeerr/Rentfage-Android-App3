@@ -87,6 +87,8 @@ private fun DetalleCasaContent(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text("¡Solicitud Enviada!", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Un asesor se comunicará contigo a la brevedad.", style = MaterialTheme.typography.bodyLarge)
                         Spacer(modifier = Modifier.height(24.dp))
                         Button(onClick = onGoHome) { Text("Volver a propiedades") }
                     }
