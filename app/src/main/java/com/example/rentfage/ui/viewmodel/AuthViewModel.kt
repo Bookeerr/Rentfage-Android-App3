@@ -5,6 +5,7 @@ import android.util.Patterns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.rentfage.data.local.storage.UserPreferences
+import com.example.rentfage.data.repository.UserRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -53,23 +54,11 @@ data class ChangePasswordUiState(
     val errorMsg: String? = null
 )
 
-internal data class DemoUser(
-    val name: String,
-    val email: String,
-    val phone: String,
-    var pass: String, 
-    val role: String
-)
-
-class AuthViewModel(application: Application) : AndroidViewModel(application) {
+class AuthViewModel(application: Application, private val userRepository: UserRepository) : AndroidViewModel(application) {
 
     private val userPreferences = UserPreferences(application)
 
     companion object {
-        internal val USERS = mutableListOf(
-            DemoUser(name = "Admin", email = "admin@rent.cl", phone = "111222333", pass = "admin123", role = "Admin"),
-            DemoUser(name = "Prueba", email = "prueba@duocuc.cl", phone = "123456789", pass = "Prueba123!", role = "User")
-        )
         var activeUserEmail: String? = null
     }
 
@@ -95,7 +84,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun validatePhone(phone: String): String? {
-        if (phone.length != 9) return "El teléfono debe tener 9 dígitos."
+        if (phone.length != 8) return "El teléfono debe tener 8 dígitos."
         return null
     }
 
@@ -136,22 +125,32 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             _login.update { it.copy(isSubmitting = true, errorMsg = null, success = false) }
             delay(500)
 
-            val user = USERS.firstOrNull { it.email.equals(s.email, ignoreCase = true) }
-            val ok = user != null && user.pass.equals(s.pass)
-
-            if (ok && user != null) {
-                activeUserEmail = user.email
-                userPreferences.setLoggedIn(true)
-                userPreferences.saveUserRole(user.role)
-            }
-
-            _login.update {
-                it.copy(
-                    isSubmitting = false,
-                    success = ok,
-                    errorMsg = if (!ok) "Credenciales inválidas" else null,
-                    loggedInUserRole = if(ok) user?.role else null
-                )
+            val result = userRepository.login(s.email, s.pass)
+            
+            if (result.isSuccess) {
+                val user = result.getOrNull()
+                if (user != null) {
+                    activeUserEmail = user.email
+                    userPreferences.setLoggedIn(true)
+                    userPreferences.saveUserRole(user.role)
+                }
+                 _login.update {
+                    it.copy(
+                        isSubmitting = false,
+                        success = true,
+                        errorMsg = null,
+                        loggedInUserRole = user?.role
+                    )
+                }
+            } else {
+                _login.update {
+                    it.copy(
+                        isSubmitting = false,
+                        success = false,
+                        errorMsg = "Credenciales inválidas",
+                        loggedInUserRole = null
+                    )
+                }
             }
         }
     }
@@ -181,7 +180,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun onPhoneChange(value: String) {
-        val digitsOnly = value.filter { it.isDigit() }.take(9)
+        val digitsOnly = value.filter { it.isDigit() }.take(8)
         _register.update { it.copy(phone = digitsOnly, phoneError = validatePhone(digitsOnly)) }
         recomputeRegisterCanSubmit()
     }
@@ -211,24 +210,18 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             _register.update { it.copy(isSubmitting = true, errorMsg = null, success = false) }
             delay(700)
 
-            val duplicated = USERS.any { it.email.equals(s.email, ignoreCase = true) }
-
-            if (duplicated) {
-                _register.update { it.copy(isSubmitting = false, success = false, errorMsg = "El usuario ya existe") }
-                return@launch
-            }
-
-            USERS.add(
-                DemoUser(
-                    name = s.name.trim(),
-                    email = s.email.trim(),
-                    phone = s.phone.trim(),
-                    pass = s.pass,
-                    role = "User" 
-                )
+            val result = userRepository.register(
+                name = s.name.trim(),
+                email = s.email.trim(),
+                phone = s.phone.trim(),
+                pass = s.pass
             )
 
-            _register.update { it.copy(isSubmitting = false, success = true, errorMsg = null) }
+            if (result.isSuccess) {
+                 _register.update { it.copy(isSubmitting = false, success = true, errorMsg = null) }
+            } else {
+                 _register.update { it.copy(isSubmitting = false, success = false, errorMsg = result.exceptionOrNull()?.message ?: "Error al registrar") }
+            }
         }
     }
 
@@ -267,20 +260,18 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             _changePassword.update { it.copy(isSubmitting = true, errorMsg = null, success = false) }
             delay(500)
 
-            val user = USERS.firstOrNull { it.email.equals(activeUserEmail, ignoreCase = true) }
-            if (user == null) {
-                _changePassword.update { it.copy(isSubmitting = false, errorMsg = "Error: Usuario no encontrado.") }
-                return@launch
+            if (activeUserEmail == null) {
+                 _changePassword.update { it.copy(isSubmitting = false, errorMsg = "No hay sesión activa.") }
+                 return@launch
             }
 
-            if (user.pass != s.currentPassword) {
-                _changePassword.update { it.copy(isSubmitting = false, currentPasswordError = "La contraseña actual es incorrecta.") }
-                return@launch
+            val result = userRepository.changePassword(activeUserEmail!!, s.currentPassword, s.newPassword)
+
+            if (result.isSuccess) {
+                _changePassword.update { it.copy(isSubmitting = false, success = true) }
+            } else {
+                 _changePassword.update { it.copy(isSubmitting = false, currentPasswordError = result.exceptionOrNull()?.message ?: "Error al cambiar clave") }
             }
-
-            user.pass = s.newPassword
-
-            _changePassword.update { it.copy(isSubmitting = false, success = true) }
         }
     }
 

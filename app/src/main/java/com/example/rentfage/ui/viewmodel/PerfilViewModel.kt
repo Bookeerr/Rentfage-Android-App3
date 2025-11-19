@@ -2,8 +2,7 @@ package com.example.rentfage.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.rentfage.domain.validation.validateNameLettersOnly
-import com.example.rentfage.domain.validation.validatePhoneDigitsOnly
+import com.example.rentfage.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,7 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class PerfilUiState(
-    val name: String = "Usuario no encontrado",
+    val name: String = "Cargando...",
     val email: String = "",
     val phone: String = "",
     val initials: String = "--"
@@ -25,7 +24,7 @@ data class EditProfileUiState(
     val canSubmit: Boolean = false
 )
 
-class PerfilViewModel : ViewModel() {
+class PerfilViewModel(private val userRepository: UserRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(PerfilUiState())
     val uiState: StateFlow<PerfilUiState> = _uiState.asStateFlow()
 
@@ -39,38 +38,57 @@ class PerfilViewModel : ViewModel() {
     fun cargarDatosUsuario() {
         val emailUsuarioActivo = AuthViewModel.activeUserEmail
         if (emailUsuarioActivo != null) {
-            val usuarioEncontrado = AuthViewModel.USERS.find { it.email.equals(emailUsuarioActivo, ignoreCase = true) }
-            if (usuarioEncontrado != null) {
-                _uiState.value = PerfilUiState(
-                    name = usuarioEncontrado.name,
-                    email = usuarioEncontrado.email,
-                    phone = usuarioEncontrado.phone,
-                    initials = getInitials(usuarioEncontrado.name)
-                )
-                _editProfileState.value = EditProfileUiState(
-                    name = usuarioEncontrado.name,
-                    phone = usuarioEncontrado.phone
-                )
+            viewModelScope.launch {
+                val usuarioEncontrado = userRepository.getUserByEmail(emailUsuarioActivo)
+                if (usuarioEncontrado != null) {
+                    _uiState.value = PerfilUiState(
+                        name = usuarioEncontrado.name,
+                        email = usuarioEncontrado.email,
+                        phone = usuarioEncontrado.phone,
+                        initials = getInitials(usuarioEncontrado.name)
+                    )
+                    // Inicializar el estado de edición con los datos actuales
+                    _editProfileState.value = EditProfileUiState(
+                        name = usuarioEncontrado.name,
+                        phone = usuarioEncontrado.phone
+                    )
+                    // Revalidar para habilitar el botón si los datos ya son válidos
+                    recomputeEditCanSubmit()
+                } else {
+                     _uiState.value = PerfilUiState(name = "Usuario no encontrado")
+                }
             }
+        } else {
+            _uiState.value = PerfilUiState(name = "No hay sesión activa")
         }
+    }
+
+    // Validaciones locales (las mismas que en AuthViewModel)
+    private fun validateName(name: String): String? {
+        if (name.isBlank()) return "El nombre no puede estar vacío."
+        if (name.any { it.isDigit() }) return "El nombre no puede contener números."
+        return null
+    }
+
+    private fun validatePhone(phone: String): String? {
+        if (phone.length != 8) return "El teléfono debe tener 8 dígitos."
+        return null
     }
 
     fun onEditNameChange(value: String) {
         val filtered = value.filter { it.isLetter() || it.isWhitespace() }
         _editProfileState.update {
-            it.copy(name = filtered, nameError = validateNameLettersOnly(filtered))
+            it.copy(name = filtered, nameError = validateName(filtered))
         }
         recomputeEditCanSubmit()
     }
 
     fun onEditPhoneChange(value: String) {
-        val digitsOnly = value.filter { it.isDigit() }
-        if (digitsOnly.length <= 8) {
-            _editProfileState.update {
-                it.copy(phone = digitsOnly, phoneError = validatePhoneDigitsOnly(digitsOnly))
-            }
-            recomputeEditCanSubmit()
+        val digitsOnly = value.filter { it.isDigit() }.take(8)
+        _editProfileState.update {
+            it.copy(phone = digitsOnly, phoneError = validatePhone(digitsOnly))
         }
+        recomputeEditCanSubmit()
     }
 
     private fun recomputeEditCanSubmit() {
@@ -80,22 +98,21 @@ class PerfilViewModel : ViewModel() {
         _editProfileState.update { it.copy(canSubmit = noErrors && filled) }
     }
 
-    // La función ahora acepta una acción a ejecutar cuando la actualización termina.
     fun updateUser(onUpdateFinished: () -> Unit) {
         val editState = _editProfileState.value
         if (!editState.canSubmit) return
 
-        viewModelScope.launch {
-            val emailUsuarioActivo = AuthViewModel.activeUserEmail
-            if (emailUsuarioActivo != null) {
-                val userIndex = AuthViewModel.USERS.indexOfFirst { it.email.equals(emailUsuarioActivo, ignoreCase = true) }
-                if (userIndex != -1) {
-                    val currentUser = AuthViewModel.USERS[userIndex]
-                    val updatedUser = currentUser.copy(name = editState.name, phone = editState.phone)
-                    AuthViewModel.USERS[userIndex] = updatedUser
-                    
+        val emailUsuarioActivo = AuthViewModel.activeUserEmail
+        if (emailUsuarioActivo != null) {
+            viewModelScope.launch {
+                val result = userRepository.updateProfile(
+                    email = emailUsuarioActivo,
+                    newName = editState.name.trim(),
+                    newPhone = editState.phone.trim()
+                )
+
+                if (result.isSuccess) {
                     cargarDatosUsuario()
-                    // Se ejecuta la acción (la navegación) solo después de guardar.
                     onUpdateFinished()
                 }
             }

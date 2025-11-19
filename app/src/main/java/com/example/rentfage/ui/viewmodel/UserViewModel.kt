@@ -18,7 +18,8 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         loadUsers()
     }
 
-    private fun loadUsers() {
+    // Cambiado a público para permitir recargar la lista desde la UI
+    fun loadUsers() {
         viewModelScope.launch {
             _users.value = userRepository.getAllUsers()
         }

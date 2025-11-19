@@ -36,24 +36,15 @@ fun DetalleCasaScreenVm(
 ) {
     val casaState by casasViewModel.getCasaById(casaId).collectAsStateWithLifecycle()
 
-    Crossfade(targetState = casaState, label = "DetalleCasaAnimation") { casa ->
-        if (casa != null) {
-            DetalleCasaContent(
-                casa = casa,
-                onGoHome = onGoHome,
-                onAddSolicitud = { historialViewModel.addSolicitud(casa) }
-            )
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                CircularProgressIndicator()
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("Cargando propiedad...")
-            }
-        }
+    // Se elimina cualquier animación de entrada (Crossfade/AnimatedVisibility)
+    // para evitar parpadeos o errores de renderizado.
+    // Se muestra el contenido directamente si los datos existen.
+    if (casaState != null) {
+        DetalleCasaContent(
+            casa = casaState!!,
+            onGoHome = onGoHome,
+            onAddSolicitud = { historialViewModel.addSolicitud(casaState!!) }
+        )
     }
 }
 
@@ -67,6 +58,8 @@ private fun DetalleCasaContent(
     var showConfirmationDialog by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
+    // Mantenemos el Crossfade interno solo para el cambio a la pantalla de "Éxito",
+    // ya que este es un cambio de estado local controlado y no debería dar problemas.
     Crossfade(targetState = showPurchaseSummary, label = "PurchaseScreenAnimation") { isSummaryVisible ->
         if (isSummaryVisible) {
             Column(

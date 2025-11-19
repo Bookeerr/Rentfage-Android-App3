@@ -39,6 +39,11 @@ class UserRepository (
         }
     }
 
+    // Obtener usuario por email
+    suspend fun getUserByEmail(email: String): UserEntity? {
+        return userDao.getByEmail(email)
+    }
+
     // Obtener todos los usuarios para la pantalla de admin
     suspend fun getAllUsers(): List<UserEntity> {
         return userDao.getAll()
@@ -57,5 +62,27 @@ class UserRepository (
             val updatedUser = user.copy(role = "USER")
             userDao.updateUser(updatedUser)
         }
+    }
+
+    // Nueva función para cambiar contraseña
+    suspend fun changePassword(email: String, currentPass: String, newPass: String): Result<Unit> {
+        val user = userDao.getByEmail(email) ?: return Result.failure(IllegalArgumentException("Usuario no encontrado"))
+        
+        if (user.pass != currentPass) {
+            return Result.failure(IllegalArgumentException("La contraseña actual es incorrecta"))
+        }
+
+        val updatedUser = user.copy(pass = newPass)
+        userDao.updateUser(updatedUser)
+        return Result.success(Unit)
+    }
+
+    // Nueva función para actualizar perfil (nombre y teléfono)
+    suspend fun updateProfile(email: String, newName: String, newPhone: String): Result<Unit> {
+        val user = userDao.getByEmail(email) ?: return Result.failure(IllegalArgumentException("Usuario no encontrado"))
+        
+        val updatedUser = user.copy(name = newName, phone = newPhone)
+        userDao.updateUser(updatedUser)
+        return Result.success(Unit)
     }
 }

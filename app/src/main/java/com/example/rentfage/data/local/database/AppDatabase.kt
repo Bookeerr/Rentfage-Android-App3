@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [UserEntity::class, CasaEntity::class],
-    version = 4, // Versión incrementada por el cambio en la tabla de usuarios
+    version = 5, // Incremento la versión para forzar actualización si se usa migración destructiva
     exportSchema = true
 )
 abstract class AppDatabase: RoomDatabase(){
@@ -41,10 +41,22 @@ abstract class AppDatabase: RoomDatabase(){
                                 // Seed para Usuarios
                                 val userDao = getInstance(context).userDao()
                                 if (userDao.count() == 0) {
-                                    // AQUÍ SE PRECARGAN LOS USUARIOS INICIALES
+                                    // USUARIO ADMIN RESTAURADO
                                     val userSeed = listOf(
-                                        UserEntity(name = "Admin", email = "a@a.cl", phone = "12345678", pass = "Admin123!", role = "ADMIN"),
-                                        UserEntity(name = "victor rosendo", email = "b@b.cl", phone = "12345678", pass = "Jose123!") // Rol USER por defecto
+                                        UserEntity(
+                                            name = "Administrador", 
+                                            email = "admin@rent.cl", 
+                                            phone = "99999999", 
+                                            pass = "Admin123!", // Cumple con las reglas de seguridad
+                                            role = "ADMIN"
+                                        ),
+                                        UserEntity(
+                                            name = "Usuario Prueba", 
+                                            email = "usuario@rent.cl", 
+                                            phone = "12345678", 
+                                            pass = "User123!", 
+                                            role = "USER"
+                                        )
                                     )
                                     userSeed.forEach { userDao.insertar(it) }
                                 }
@@ -52,19 +64,18 @@ abstract class AppDatabase: RoomDatabase(){
                                 // Seed para Casas
                                 val casaDao = getInstance(context).casaDao()
                                 if (casaDao.count() == 0) {
-                                    // AQUÍ SE PRECARGAN LAS CASAS INICIALES
                                     val casaSeed = listOf(
                                         CasaEntity(
                                             price = "$250.000 CLP",
-                                            address = "Calle Falsa 123, Santiago",
-                                            details = "Acogedor departamento de 2 ambientes, ideal para una persona o pareja. Cerca de comercios y transporte público.",
+                                            address = "Las Condes, Santiago",
+                                            details = "Acogedora casa de un piso, con jardín formado. Ideal para una vida tranquila cerca de la ciudad.",
                                             imageUri = "android.resource://com.example.rentfage/drawable/casa1",
                                             latitude = -33.4489,
                                             longitude = -70.6693
                                         ),
                                         CasaEntity(
                                             price = "$450.000 CLP",
-                                            address = "Avenida Siempreviva 742, Providencia",
+                                            address = "Providencia, Santiago",
                                             details = "Amplia casa de 3 dormitorios y 2 baños, con un gran patio trasero y estacionamiento. Perfecta para una familia.",
                                             imageUri = "android.resource://com.example.rentfage/drawable/casa2",
                                             latitude = -33.4314,
@@ -72,8 +83,8 @@ abstract class AppDatabase: RoomDatabase(){
                                         ),
                                         CasaEntity(
                                             price = "$320.000 CLP",
-                                            address = "Pasaje Los Lirios 45, Las Condes",
-                                            details = "Moderno loft con excelente iluminación natural. Edificio cuenta con gimnasio y piscina.",
+                                            address = "Los Trapenses, La Dehesa",
+                                            details = "Moderna casa estilo mediterráneo con excelente iluminación natural. Cuenta con piscina y quincho.",
                                             imageUri = "android.resource://com.example.rentfage/drawable/casa3",
                                             latitude = -33.4164,
                                             longitude = -70.5679

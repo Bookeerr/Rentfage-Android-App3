@@ -33,13 +33,16 @@ import com.example.rentfage.ui.components.AppTopBar
 import com.example.rentfage.ui.components.defaultDrawerItems
 import com.example.rentfage.ui.screen.*
 import com.example.rentfage.ui.viewmodel.AuthViewModel
+import com.example.rentfage.ui.viewmodel.AuthViewModelFactory
 import com.example.rentfage.ui.viewmodel.CasasViewModel
 import com.example.rentfage.ui.viewmodel.CasasViewModelFactory
 import com.example.rentfage.ui.viewmodel.HistorialViewModel
 import com.example.rentfage.ui.viewmodel.PerfilViewModel
+import com.example.rentfage.ui.viewmodel.PerfilViewModelFactory
 import com.example.rentfage.ui.viewmodel.UserViewModel
 import com.example.rentfage.ui.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
+import android.app.Application
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
@@ -53,24 +56,33 @@ fun AppNavGraph(navController: NavHostController) {
 
     // --- CONTEXTO Y PREFERENCIAS ---
     val context = LocalContext.current
+    val application = context.applicationContext as Application
     val userPreferences = remember { UserPreferences(context) }
     val userRole by userPreferences.userRole.collectAsState(initial = null)
 
-    // --- VIEWMODELS COMPARTIDOS ---
-    val perfilViewModel: PerfilViewModel = viewModel()
-    val authViewModel: AuthViewModel = viewModel()
-    val historialViewModel: HistorialViewModel = viewModel()
-
-    // Crear y compartir el ViewModel de Casas
+    // Crear Base de Datos y Repositorios
     val database = remember { AppDatabase.getInstance(context) }
     val casasRepository = remember { CasasRepository(database.casaDao()) }
+    val userRepository = remember { UserRepository(database.userDao()) }
+
+    // ViewModel de Perfil (AHORA CON FÁBRICA)
+    val perfilViewModelFactory = remember { PerfilViewModelFactory(userRepository) }
+    val perfilViewModel: PerfilViewModel = viewModel(factory = perfilViewModelFactory)
+
+    // ViewModel de Historial
+    val historialViewModel: HistorialViewModel = viewModel()
+
+    // ViewModel de Casas
     val casasViewModelFactory = remember { CasasViewModelFactory(casasRepository) }
     val casasViewModel: CasasViewModel = viewModel(factory = casasViewModelFactory)
 
-    // Crear y compartir el ViewModel de Usuarios
-    val userRepository = remember { UserRepository(database.userDao()) }
+    // ViewModel de Usuarios (para Admin)
     val userViewModelFactory = remember { UserViewModelFactory(userRepository) }
     val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
+    
+    // ViewModel de Autenticación (Login/Registro)
+    val authViewModelFactory = remember { AuthViewModelFactory(application, userRepository) }
+    val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
 
     val showTopBar = currentRoute != "login" && currentRoute != "register"
 
@@ -87,7 +99,7 @@ fun AppNavGraph(navController: NavHostController) {
     val goAdminDashboard: () -> Unit = { navController.navigate("admin_dashboard") }
     val goAdminPropertyList: () -> Unit = { navController.navigate("admin_property_list") }
     val goAdminSolicitudes: () -> Unit = { navController.navigate("admin_solicitudes") }
-    val goAdminUserList: () -> Unit = { navController.navigate("admin_user_list") } // Nueva acción
+    val goAdminUserList: () -> Unit = { navController.navigate("admin_user_list") } 
     val onHouseClick: (Int) -> Unit = { casaId -> navController.navigate("detalle_casa/$casaId") }
     val onNavigateBack: () -> Unit = { navController.popBackStack() }
     val goAddEditProperty: (Int?) -> Unit = { casaId ->
@@ -174,7 +186,7 @@ fun AppNavGraph(navController: NavHostController) {
                 }
 
                 composable("admin_solicitudes") { AdminSolicitudesScreen(historialViewModel = historialViewModel) }
-                composable("admin_user_list") { AdminUsuario(userViewModel = userViewModel) } // Ruta actualizada
+                composable("admin_user_list") { AdminUsuario(userViewModel = userViewModel) }
 
                 // --- OTRAS RUTAS ---
                 composable("edit_profile") { editarperfilScreen(perfilViewModel = perfilViewModel, onSaveChanges = onNavigateBack) }
