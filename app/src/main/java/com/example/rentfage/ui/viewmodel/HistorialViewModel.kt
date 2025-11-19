@@ -3,8 +3,11 @@ package com.example.rentfage.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.rentfage.data.local.entity.CasaEntity
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -17,7 +20,7 @@ enum class EstadoSolicitud { Pendiente, Aprobada, Rechazada }
 data class Solicitud(
     val id: Int,
     val usuarioEmail: String,
-    val casa: CasaEntity, // <-- Usa la entidad correcta de la BD
+    val casa: CasaEntity,
     val fecha: String,
     var estado: EstadoSolicitud
 )
@@ -31,8 +34,11 @@ class HistorialViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(HistorialUiState())
     val uiState: StateFlow<HistorialUiState> = _uiState.asStateFlow()
 
+    // Nuevo canal para mensajes de snackbar
+    private val _messageFlow = MutableSharedFlow<String>()
+    val messageFlow: SharedFlow<String> = _messageFlow.asSharedFlow()
+
     companion object {
-        // Temporal: Se usa una lista global para simular la persistencia de solicitudes.
         private val solicitudesGlobales = mutableListOf<Solicitud>()
     }
 
@@ -80,13 +86,23 @@ class HistorialViewModel : ViewModel() {
 
     fun aprobarSolicitud(solicitudId: Int) {
         val solicitud = solicitudesGlobales.find { it.id == solicitudId }
-        solicitud?.estado = EstadoSolicitud.Aprobada
-        cargarTodasLasSolicitudes()
+        solicitud?.let {
+            it.estado = EstadoSolicitud.Aprobada
+            cargarTodasLasSolicitudes()
+            viewModelScope.launch {
+                _messageFlow.emit("Solicitud #${it.id} aprobada con éxito")
+            }
+        }
     }
 
     fun rechazarSolicitud(solicitudId: Int) {
         val solicitud = solicitudesGlobales.find { it.id == solicitudId }
-        solicitud?.estado = EstadoSolicitud.Rechazada
-        cargarTodasLasSolicitudes()
+        solicitud?.let {
+            it.estado = EstadoSolicitud.Rechazada
+            cargarTodasLasSolicitudes()
+            viewModelScope.launch {
+                _messageFlow.emit("Solicitud #${it.id} rechazada")
+            }
+        }
     }
 }

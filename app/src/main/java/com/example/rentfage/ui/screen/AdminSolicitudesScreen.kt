@@ -17,11 +17,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -33,43 +37,59 @@ import com.example.rentfage.data.local.entity.CasaEntity
 import com.example.rentfage.ui.viewmodel.EstadoSolicitud
 import com.example.rentfage.ui.viewmodel.HistorialViewModel
 import com.example.rentfage.ui.viewmodel.Solicitud
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun AdminSolicitudesScreen(historialViewModel: HistorialViewModel) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
     LaunchedEffect(Unit) {
         historialViewModel.cargarTodasLasSolicitudes()
     }
 
-    val state by historialViewModel.uiState.collectAsState()
-//cambio
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp)
-    ) {
-        Text(
-            text = "Gestionar Solicitudes",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+    LaunchedEffect(key1 = true) {
+        historialViewModel.messageFlow.collectLatest { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
 
-        if (state.solicitudes.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No hay ninguna solicitud pendiente.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center
-                )
-            }
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                items(state.solicitudes) { solicitud ->
-                    AdminSolicitudCard(
-                        solicitud = solicitud,
-                        onAprobar = { historialViewModel.aprobarSolicitud(solicitud.id) },
-                        onRechazar = { historialViewModel.rechazarSolicitud(solicitud.id) }
+    val state by historialViewModel.uiState.collectAsState()
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Gestionar Solicitudes",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            if (state.solicitudes.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No hay ninguna solicitud pendiente.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center
                     )
+                }
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    items(state.solicitudes) { solicitud ->
+                        AdminSolicitudCard(
+                            solicitud = solicitud,
+                            onAprobar = { historialViewModel.aprobarSolicitud(solicitud.id) },
+                            onRechazar = { historialViewModel.rechazarSolicitud(solicitud.id) }
+                        )
+                    }
                 }
             }
         }
