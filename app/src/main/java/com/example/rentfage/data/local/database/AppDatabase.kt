@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 @Database(
     entities = [UserEntity::class, CasaEntity::class],
-    version = 5, // Incremento la versión para forzar actualización si se usa migración destructiva
+    version = 5, 
     exportSchema = true
 )
 abstract class AppDatabase: RoomDatabase(){
@@ -35,30 +35,30 @@ abstract class AppDatabase: RoomDatabase(){
                     DB_NAME
                 )
                     .addCallback(object : RoomDatabase.Callback(){
-                        override fun onCreate(db: SupportSQLiteDatabase) {
-                            super.onCreate(db)
+                        override fun onOpen(db: SupportSQLiteDatabase) {
+                            super.onOpen(db)
                             CoroutineScope(Dispatchers.IO).launch {
-                                // Seed para Usuarios
                                 val userDao = getInstance(context).userDao()
-                                if (userDao.count() == 0) {
-                                    // USUARIO ADMIN RESTAURADO
-                                    val userSeed = listOf(
-                                        UserEntity(
-                                            name = "Administrador", 
-                                            email = "admin@rent.cl", 
-                                            phone = "99999999", 
-                                            pass = "Admin123!", // Cumple con las reglas de seguridad
-                                            role = "ADMIN"
-                                        ),
-                                        UserEntity(
-                                            name = "Usuario Prueba", 
-                                            email = "usuario@rent.cl", 
-                                            phone = "12345678", 
-                                            pass = "User123!", 
-                                            role = "USER"
-                                        )
-                                    )
-                                    userSeed.forEach { userDao.insertar(it) }
+                                
+                                // 1. GARANTIZAR ADMIN
+                                val existingAdmin = userDao.getByEmail("admin@rent.cl")
+                                if (existingAdmin != null) {
+                                    val fixedAdmin = existingAdmin.copy(pass = "Admin123!", role = "ADMIN")
+                                    if (existingAdmin.pass != "Admin123!" || existingAdmin.role != "ADMIN") {
+                                        userDao.updateUser(fixedAdmin)
+                                    }
+                                } else {
+                                    userDao.insertar(UserEntity(name = "Administrador", email = "admin@rent.cl", phone = "99999999", pass = "Admin123!", role = "ADMIN"))
+                                }
+
+                                // 2. GARANTIZAR VICTOR ROSENDO
+                                if (userDao.getByEmail("victor@rent.cl") == null) {
+                                    userDao.insertar(UserEntity(name = "Victor Rosendo", email = "victor@rent.cl", phone = "12345678", pass = "User123!", role = "USER"))
+                                }
+
+                                // 3. GARANTIZAR GERALD SANTANA
+                                if (userDao.getByEmail("gerald@rent.cl") == null) {
+                                    userDao.insertar(UserEntity(name = "Gerald Santana", email = "gerald@rent.cl", phone = "87654321", pass = "User123!", role = "USER"))
                                 }
 
                                 // Seed para Casas

@@ -65,7 +65,8 @@ fun defaultDrawerItems(
         DrawerItem("nosotros", "Nosotros", "Sobre Nosotros", Icons.Filled.Info, onNosotros)
     )
 
-    if (userRole == "Admin") {
+    // Corregido: Ahora compara ignorando mayúsculas/minúsculas para aceptar "ADMIN", "Admin", etc.
+    if (userRole.equals("Admin", ignoreCase = true)) {
         baseItems.add(
             DrawerItem("admin_dashboard", "Panel de Administrador", "Panel de Administrador", Icons.Filled.AdminPanelSettings, onAdmin)
         )
