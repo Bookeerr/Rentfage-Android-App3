@@ -76,7 +76,7 @@ class CasasViewModel(private val repository: CasasRepository) : ViewModel() {
             val casaEntity = CasaEntity(
                 id = casaId ?: 0, // Room se encarga si es 0
                 address = s.address,
-                price = s.price,
+                price = "$${s.price} CLP", // Añadimos formato al guardar
                 details = s.details,
                 imageUri = s.imageUri!!,
                 latitude = s.latitude.toDoubleOrNull() ?: 0.0,
@@ -93,13 +93,13 @@ class CasasViewModel(private val repository: CasasRepository) : ViewModel() {
         }
     }
 
-    // --- MANEJO DEL FORMULARIO DE AÑADIR/EDITAR ---
+    //  MANEJO DEL FORMULARIO DE AÑADIR/EDITAR
 
     private fun populateFormFromEntity(casa: CasaEntity) {
         _addEditState.update {
             it.copy(
                 address = casa.address,
-                price = casa.price,
+                price = casa.price.replace("$", "").replace(" CLP", ""), // Limpiamos el formato para editar
                 details = casa.details,
                 latitude = casa.latitude.toString(),
                 longitude = casa.longitude.toString(),
@@ -120,10 +120,29 @@ class CasasViewModel(private val repository: CasasRepository) : ViewModel() {
     }
 
     fun onAddressChange(value: String) { _addEditState.update { it.copy(address = value) }; recomputeCanSubmit() }
-    fun onPriceChange(value: String) { _addEditState.update { it.copy(price = value) }; recomputeCanSubmit() }
+    fun onPriceChange(value: String) {
+        // Solo aceptar números y limitar la longitud a 10 dígitos
+        val digitsOnly = value.filter { it.isDigit() }
+        if (digitsOnly.length <= 10) {
+            _addEditState.update { it.copy(price = digitsOnly) }
+        }
+        recomputeCanSubmit()
+    }
     fun onDetailsChange(value: String) { _addEditState.update { it.copy(details = value) }; recomputeCanSubmit() }
-    fun onLatitudeChange(value: String) { _addEditState.update { it.copy(latitude = value) }; recomputeCanSubmit() }
-    fun onLongitudeChange(value: String) { _addEditState.update { it.copy(longitude = value) }; recomputeCanSubmit() }
+    fun onLatitudeChange(value: String) {
+        // Limitar a 10 caracteres
+        if (value.length <= 10) {
+            _addEditState.update { it.copy(latitude = value) }
+        }
+        recomputeCanSubmit()
+    }
+    fun onLongitudeChange(value: String) {
+        // Limitar a 10 caracteres
+        if (value.length <= 10) {
+            _addEditState.update { it.copy(longitude = value) }
+        }
+        recomputeCanSubmit()
+    }
     fun onImageUriChange(uri: String?) { _addEditState.update { it.copy(imageUri = uri) }; recomputeCanSubmit() }
 
     private fun recomputeCanSubmit() {

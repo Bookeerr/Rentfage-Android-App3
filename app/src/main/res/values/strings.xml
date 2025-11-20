@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Rentfage</string>
-    <!-- Login Screen -->
+    <!-- Pantalla de Inicio de Sesión -->
     <string name="login_title">Inicio de sesión</string>
     <string name="login_welcome">Bienvenido a Rentfage, la mejor app de ventas de casas</string>
     <string name="login_email_label">Correo electrónico</string>
@@ -11,7 +11,7 @@
     <string name="login_submit_button">Entrar</string>
     <string name="login_create_account_button">Crear cuenta</string>
 
-    <!-- Perfil Screen -->
+    <!-- Pantalla de Perfil -->
     <string name="profile_email_cd">Correo electrónico</string>
     <string name="profile_phone_cd">Teléfono</string>
     <string name="profile_picture_title">Captura de foto de perfil</string>
@@ -31,13 +31,13 @@
     <string name="profile_edit_profile_button">Modificar Perfil</string>
     <string name="profile_change_password_button">Cambiar Contraseña</string>
 
-    <!-- Edit Profile Screen -->
+    <!-- Pantalla de Editar Perfil -->
     <string name="edit_profile_title">Modificar Perfil</string>
     <string name="edit_profile_name_label">Nombre</string>
     <string name="edit_profile_phone_label">Teléfono</string>
     <string name="edit_profile_save_button">Guardar Cambios</string>
 
-    <!-- Register Screen -->
+    <!-- Pantalla de Registro -->
     <string name="register_title">Registro</string>
     <string name="register_name_label">Nombre</string>
     <string name="register_phone_label">Teléfono</string>
@@ -48,17 +48,21 @@
     <string name="register_submit_button">Registrar</string>
     <string name="register_go_to_login_button">Ir a Inicio de Sesión</string>
 
-    <!-- Change Password Screen -->
+    <!-- Pantalla de Cambiar Contraseña -->
     <string name="change_password_title">Cambiar Contraseña</string>
     <string name="change_password_current_password_label">Contraseña Actual</string>
     <string name="change_password_new_password_label">Nueva Contraseña</string>
     <string name="change_password_confirm_new_password_label">Confirmar Nueva Contraseña</string>
     <string name="change_password_save_button">Guardar Cambios</string>
 
-    <!-- Historial Screen -->
+    <!-- Pantalla de Historial -->
     <string name="historial_title">Historial de Solicitudes</string>
     <string name="historial_no_solicitudes">Aún no has realizado ninguna solicitud.</string>
     <string name="historial_solicitud_id">Solicitud #%1$d</string>
     <string name="historial_fecha_label">Fecha:</string>
     <string name="historial_estado_label">Estado:</string>
+
+    <!-- Barra Superior (Top Bar) -->
+    <string name="top_bar_menu_icon_description">Abrir menú de navegación</string>
+    <string name="top_bar_profile_icon_description">Ir al perfil</string>
 </resources>

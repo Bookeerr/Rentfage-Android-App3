@@ -47,15 +47,13 @@ import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
-    //aa
-
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // --- CONTEXTO Y PREFERENCIAS ---
+    //  CONTEXTO Y PREFERENCIAS
     val context = LocalContext.current
     val application = context.applicationContext as Application
     val userPreferences = remember { UserPreferences(context) }
@@ -66,7 +64,7 @@ fun AppNavGraph(navController: NavHostController) {
     val casasRepository = remember { CasasRepository(database.casaDao()) }
     val userRepository = remember { UserRepository(database.userDao()) }
 
-    // ViewModel de Perfil (AHORA CON FÁBRICA)
+    // ViewModel de Perfil
     val perfilViewModelFactory = remember { PerfilViewModelFactory(userRepository) }
     val perfilViewModel: PerfilViewModel = viewModel(factory = perfilViewModelFactory)
 
@@ -81,16 +79,16 @@ fun AppNavGraph(navController: NavHostController) {
     val userViewModelFactory = remember { UserViewModelFactory(userRepository) }
     val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
     
-    // ViewModel de Autenticación (Login/Registro)
+    // ViewModel de Autenticación
     val authViewModelFactory = remember { AuthViewModelFactory(application, userRepository) }
     val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
 
     val showTopBar = currentRoute != "login" && currentRoute != "register"
 
-    // --- ACCIONES DE NAVEGACIÓN ---
+    //  ACCIONES DE NAVEGACIÓN
     val goHome: () -> Unit = { navController.navigate("home") }
-    val goLogin: () -> Unit = { navController.navigate("login") }
-    val goRegister: () -> Unit = { navController.navigate("register") }
+    val goLogin: () -> Unit = { navController.navigate("login") { launchSingleTop = true } }
+    val goRegister: () -> Unit = { navController.navigate("register") { launchSingleTop = true } }
     val goPerfil: () -> Unit = { navController.navigate("perfil") }
     val goEditProfile: () -> Unit = { navController.navigate("edit_profile") }
     val goChangePassword: () -> Unit = { navController.navigate("change_password") }
@@ -106,6 +104,16 @@ fun AppNavGraph(navController: NavHostController) {
     val goAddEditProperty: (Int?) -> Unit = { casaId ->
         val route = if (casaId != null) "add_edit_property/$casaId" else "add_edit_property/-1"
         navController.navigate(route)
+    }
+
+    // Acciones de navegación con limpieza de formularios
+    val goToRegisterAndClean = {
+        authViewModel.resetLoginForm()
+        goRegister()
+    }
+    val goToLoginAndClean = {
+        authViewModel.resetRegisterForm()
+        goLogin()
     }
 
     val drawerItems = defaultDrawerItems(
@@ -127,7 +135,11 @@ fun AppNavGraph(navController: NavHostController) {
             topBar = {
                 if (showTopBar) {
                     val title = drawerItems.find { it.route == currentRoute }?.title ?: ""
-                    AppTopBar(title = title, onOpenDrawer = { scope.launch { drawerState.open() } })
+                    AppTopBar(
+                        title = title, 
+                        onOpenDrawer = { scope.launch { drawerState.open() } },
+                        onGoToProfile = goPerfil // Conectamos la acción
+                    )
                 }
             }
         ) { innerPadding ->
@@ -142,19 +154,11 @@ fun AppNavGraph(navController: NavHostController) {
                 composable("home") { HomeScreenVm(onHouseClick = onHouseClick, casasViewModel = casasViewModel) }
                 
                 composable("login") { 
-                    // Limpiamos el formulario de registro al entrar al login
-                    LaunchedEffect(Unit) {
-                        authViewModel.resetRegisterForm()
-                    }
-                    LoginScreenVm(authViewModel = authViewModel, onLoginOkNavigateHome = goHome, onGoRegister = goRegister) 
+                    LoginScreenVm(authViewModel = authViewModel, onLoginOkNavigateHome = goHome, onGoRegister = goToRegisterAndClean) 
                 }
                 
                 composable("register") { 
-                    // Limpiamos el formulario de login al entrar al registro
-                    LaunchedEffect(Unit) {
-                        authViewModel.resetLoginForm()
-                    }
-                    RegisterScreenVm(authViewModel = authViewModel, onRegisteredNavigateLogin = goLogin, onGoLogin = goLogin) 
+                    RegisterScreenVm(authViewModel = authViewModel, onRegisteredNavigateLogin = goToLoginAndClean, onGoLogin = goToLoginAndClean) 
                 }
                 
                 composable("perfil") { PerfilScreenVm(authViewModel = authViewModel, perfilViewModel = perfilViewModel, onLogout = goLogin, onEditProfile = goEditProfile, onChangePassword = goChangePassword) }

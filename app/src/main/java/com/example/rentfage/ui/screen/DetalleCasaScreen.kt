@@ -65,8 +65,6 @@ private fun DetalleCasaContent(
     Scaffold(
         bottomBar = {
             if (!showPurchaseSummary) {
-                // Eliminamos tonalElevation para quitar el tinte rojo del fondo.
-                // Forzamos el color a Surface (blanco/tema claro) y mantenemos la sombra.
                 Surface(
                     tonalElevation = 0.dp, 
                     shadowElevation = 8.dp,
@@ -105,7 +103,7 @@ private fun DetalleCasaContent(
                             Spacer(modifier = Modifier.height(24.dp))
                             Text("¡Solicitud Enviada!", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.height(12.dp))
-                            Text("Un asesor se comunicará contigo.", style = MaterialTheme.typography.bodyLarge, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            Text("Un asesor se comunicará contigo a la brevedad.", style = MaterialTheme.typography.bodyLarge, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                             Spacer(modifier = Modifier.height(32.dp))
                             OutlinedButton(onClick = onGoHome, Modifier.fillMaxWidth()) { Text("Volver a propiedades") }
                         }

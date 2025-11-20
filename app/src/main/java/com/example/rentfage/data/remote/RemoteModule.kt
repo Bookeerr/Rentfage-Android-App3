@@ -33,8 +33,5 @@ object RemoteModule {
         .addConverterFactory(GsonConverterFactory.create()) // 3. Le decimos que use Gson para convertir JSON a objetos Kotlin.
         .build()
 
-    /**
-     * Función genérica que crea una implementación de una interfaz de API (como JsonPlaceholderApi).
-     */
     fun <T> create(service: Class<T>): T = retrofit.create(service)
 }

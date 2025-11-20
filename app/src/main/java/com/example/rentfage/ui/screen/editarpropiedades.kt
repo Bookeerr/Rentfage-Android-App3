@@ -125,10 +125,43 @@ private fun AddEditPropertyContent(
             }
 
             OutlinedTextField(value = address, onValueChange = onAddressChange, label = { Text("Dirección") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-            OutlinedTextField(value = price, onValueChange = onPriceChange, label = { Text("Precio (ej: UF 28.500)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-            OutlinedTextField(value = details, onValueChange = onDetailsChange, label = { Text("Detalles (ej: 4 hab | 2 baños | 450 m²)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-            OutlinedTextField(value = latitude, onValueChange = onLatitudeChange, label = { Text("Latitud") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true)
-            OutlinedTextField(value = longitude, onValueChange = onLongitudeChange, label = { Text("Longitud") }, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true)
+            
+            // Campo Precio: con teclado numérico
+            OutlinedTextField(
+                value = price, 
+                onValueChange = onPriceChange, 
+                label = { Text("Precio (solo números)") }, 
+                modifier = Modifier.fillMaxWidth(), 
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true
+            )
+
+            // Campo Detalles: con texto de ayuda mejorado
+            OutlinedTextField(
+                value = details, 
+                onValueChange = onDetailsChange, 
+                label = { Text("Detalles (ej: 4 hab | 2 baños | Descripción)") }, 
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 4 // Permitir varias líneas para la descripción
+            )
+            
+            // Campos Lat/Long: con teclado numérico decimal
+            OutlinedTextField(
+                value = latitude, 
+                onValueChange = onLatitudeChange, 
+                label = { Text("Latitud") }, 
+                modifier = Modifier.fillMaxWidth(), 
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true
+            )
+            OutlinedTextField(
+                value = longitude, 
+                onValueChange = onLongitudeChange, 
+                label = { Text("Longitud") }, 
+                modifier = Modifier.fillMaxWidth(), 
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -152,5 +185,5 @@ fun AddPropertyPreview() {
 @Preview(showBackground = true, name = "Editar Propiedad")
 @Composable
 fun EditPropertyPreview() {
-    AddEditPropertyContent(isEditing = true, address = "Av. Siempre Viva 123", price = "UF 15.000", details = "3 hab | 2 baños | 200 m²", latitude = "-33.456", longitude = "-70.678", imageUri = null, canSubmit = true, isSaving = false, onAddressChange = {}, onPriceChange = {}, onDetailsChange = {}, onLatitudeChange = {}, onLongitudeChange = {}, onImageChange = {}, onSaveClick = {})
+    AddEditPropertyContent(isEditing = true, address = "Av. Siempre Viva 123", price = "15000", details = "3 hab | 2 baños | Descripción breve", latitude = "-33.456", longitude = "-70.678", imageUri = null, canSubmit = true, isSaving = false, onAddressChange = {}, onPriceChange = {}, onDetailsChange = {}, onLatitudeChange = {}, onLongitudeChange = {}, onImageChange = {}, onSaveClick = {})
 }
