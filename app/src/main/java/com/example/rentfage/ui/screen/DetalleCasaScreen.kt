@@ -34,16 +34,19 @@ fun DetalleCasaScreenVm(
     historialViewModel: HistorialViewModel,
     casasViewModel: CasasViewModel
 ) {
-    val casaState by casasViewModel.getCasaById(casaId).collectAsStateWithLifecycle()
+    // SOLUCIÓN SIN PARPADEO USANDO BASE DE DATOS:
+    // Observamos el estado global de la base de datos (uiState) que el ViewModel mantiene actualizado.
+    // Al buscar aquí, obtenemos el dato REAL de la BD instantáneamente porque ya se cargó en la pantalla anterior.
+    val uiState by casasViewModel.uiState.collectAsStateWithLifecycle()
+    
+    // Buscamos la casa específica dentro de los datos de la BD
+    val casa = remember(uiState, casaId) { uiState.casas.find { it.id == casaId } }
 
-    // Se elimina cualquier animación de entrada (Crossfade/AnimatedVisibility)
-    // para evitar parpadeos o errores de renderizado.
-    // Se muestra el contenido directamente si los datos existen.
-    if (casaState != null) {
+    if (casa != null) {
         DetalleCasaContent(
-            casa = casaState!!,
+            casa = casa,
             onGoHome = onGoHome,
-            onAddSolicitud = { historialViewModel.addSolicitud(casaState!!) }
+            onAddSolicitud = { historialViewModel.addSolicitud(casa) }
         )
     }
 }
@@ -58,8 +61,6 @@ private fun DetalleCasaContent(
     var showConfirmationDialog by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    // Mantenemos el Crossfade interno solo para el cambio a la pantalla de "Éxito",
-    // ya que este es un cambio de estado local controlado y no debería dar problemas.
     Crossfade(targetState = showPurchaseSummary, label = "PurchaseScreenAnimation") { isSummaryVisible ->
         if (isSummaryVisible) {
             Column(
