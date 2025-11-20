@@ -20,16 +20,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.rentfage.R
 import com.example.rentfage.ui.viewmodel.PerfilViewModel
 
 @Composable
 fun editarperfilScreen(
-    perfilViewModel: PerfilViewModel, // Se recibe el ViewModel, ya no se crea aquí.
+    perfilViewModel: PerfilViewModel,
     onSaveChanges: () -> Unit
 ) {
     val editState by perfilViewModel.editProfileState.collectAsState()
@@ -48,7 +46,7 @@ fun editarperfilScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = stringResource(R.string.edit_profile_title),
+                text = "Modificar Perfil",
                 style = MaterialTheme.typography.headlineMedium
             )
 
@@ -57,7 +55,7 @@ fun editarperfilScreen(
             OutlinedTextField(
                 value = editState.name,
                 onValueChange = perfilViewModel::onEditNameChange,
-                label = { Text(stringResource(R.string.edit_profile_name_label)) },
+                label = { Text("Nombre") },
                 isError = editState.nameError != null,
                 supportingText = {
                     editState.nameError?.let { error ->
@@ -70,7 +68,7 @@ fun editarperfilScreen(
             OutlinedTextField(
                 value = editState.phone,
                 onValueChange = perfilViewModel::onEditPhoneChange,
-                label = { Text(stringResource(R.string.edit_profile_phone_label)) },
+                label = { Text("Teléfono") },
                 isError = editState.phoneError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 supportingText = {
@@ -90,7 +88,7 @@ fun editarperfilScreen(
                 enabled = editState.canSubmit,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(stringResource(R.string.edit_profile_save_button))
+                Text("Guardar Cambios")
             }
         }
     }
@@ -99,5 +97,5 @@ fun editarperfilScreen(
 @Preview(showBackground = true)
 @Composable
 fun EditarPerfilScreenPreview() {
-    // Esta pantalla ahora necesita que se le pase un ViewModel para ser previsualizada.
+    // This screen now needs a ViewModel to be previewed.
 }

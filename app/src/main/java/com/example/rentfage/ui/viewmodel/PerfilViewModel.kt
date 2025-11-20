@@ -3,6 +3,7 @@ package com.example.rentfage.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.rentfage.data.repository.UserRepository
+import com.example.rentfage.domain.validation.* // Importamos las validaciones
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -63,30 +64,18 @@ class PerfilViewModel(private val userRepository: UserRepository) : ViewModel() 
         }
     }
 
-    // Validaciones locales (las mismas que en AuthViewModel)
-    private fun validateName(name: String): String? {
-        if (name.isBlank()) return "El nombre no puede estar vacío."
-        if (name.any { it.isDigit() }) return "El nombre no puede contener números."
-        return null
-    }
-
-    private fun validatePhone(phone: String): String? {
-        if (phone.length != 8) return "El teléfono debe tener 8 dígitos."
-        return null
-    }
-
     fun onEditNameChange(value: String) {
-        val filtered = value.filter { it.isLetter() || it.isWhitespace() }
+        // Usamos la validación global del profesor
         _editProfileState.update {
-            it.copy(name = filtered, nameError = validateName(filtered))
+            it.copy(name = value, nameError = validateNameLettersOnly(value))
         }
         recomputeEditCanSubmit()
     }
 
     fun onEditPhoneChange(value: String) {
-        val digitsOnly = value.filter { it.isDigit() }.take(8)
+        // Usamos la validación global del profesor
         _editProfileState.update {
-            it.copy(phone = digitsOnly, phoneError = validatePhone(digitsOnly))
+            it.copy(phone = value, phoneError = validatePhoneDigitsOnly(value))
         }
         recomputeEditCanSubmit()
     }

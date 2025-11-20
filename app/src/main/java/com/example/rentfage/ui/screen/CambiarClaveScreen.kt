@@ -21,13 +21,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.rentfage.R
 import com.example.rentfage.ui.viewmodel.AuthViewModel
 
 @Composable
@@ -42,12 +40,11 @@ fun CambiarClaveScreen(
     var showNewPassword by remember { mutableStateOf(false) }
     var showConfirmPassword by remember { mutableStateOf(false) }
 
-    // Efecto que se dispara cuando el cambio de contraseña es exitoso.
     LaunchedEffect(state.success) {
         if (state.success) {
             Toast.makeText(context, "Contraseña cambiada con éxito", Toast.LENGTH_SHORT).show()
-            authViewModel.clearChangePasswordResult() // Limpia el estado del ViewModel.
-            onSaveChanges() // Navega hacia atrás.
+            authViewModel.clearChangePasswordResult()
+            onSaveChanges()
         }
     }
 
@@ -61,14 +58,14 @@ fun CambiarClaveScreen(
     ) {
         Icon(
             imageVector = Icons.Filled.VpnKey,
-            contentDescription = null, // Icono decorativo.
+            contentDescription = null,
             modifier = Modifier.size(64.dp),
             tint = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = stringResource(R.string.change_password_title),
+            text = "Cambiar Contraseña",
             style = MaterialTheme.typography.headlineLarge
         )
         Spacer(modifier = Modifier.height(24.dp))
@@ -76,7 +73,7 @@ fun CambiarClaveScreen(
         OutlinedTextField(
             value = state.currentPassword,
             onValueChange = authViewModel::onCurrentPasswordChange,
-            label = { Text(stringResource(R.string.change_password_current_password_label)) },
+            label = { Text("Contraseña Actual") },
             singleLine = true,
             isError = state.currentPasswordError != null,
             visualTransformation = if (showCurrentPassword) VisualTransformation.None else PasswordVisualTransformation(),
@@ -99,7 +96,7 @@ fun CambiarClaveScreen(
         OutlinedTextField(
             value = state.newPassword,
             onValueChange = authViewModel::onNewPasswordChange,
-            label = { Text(stringResource(R.string.change_password_new_password_label)) },
+            label = { Text("Nueva Contraseña") },
             singleLine = true,
             isError = state.newPasswordError != null,
             visualTransformation = if (showNewPassword) VisualTransformation.None else PasswordVisualTransformation(),
@@ -122,7 +119,7 @@ fun CambiarClaveScreen(
         OutlinedTextField(
             value = state.confirmNewPassword,
             onValueChange = authViewModel::onConfirmNewPasswordChange,
-            label = { Text(stringResource(R.string.change_password_confirm_new_password_label)) },
+            label = { Text("Confirmar Nueva Contraseña") },
             singleLine = true,
             isError = state.confirmNewPasswordError != null,
             visualTransformation = if (showConfirmPassword) VisualTransformation.None else PasswordVisualTransformation(),
@@ -159,7 +156,7 @@ fun CambiarClaveScreen(
                 Spacer(modifier = Modifier.width(12.dp))
                 Text("Guardando...") 
             } else {
-                Text(stringResource(R.string.change_password_save_button))
+                Text("Guardar Cambios")
             }
         }
     }

@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -32,12 +31,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.rentfage.R
 import com.example.rentfage.ui.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreenVm(
-    authViewModel: AuthViewModel, // Se recibe el ViewModel
+    authViewModel: AuthViewModel,
     onLoginOkNavigateHome: () -> Unit,
     onGoRegister: () -> Unit
 ) {
@@ -100,20 +98,20 @@ private fun LoginScreen(
     ) {
         Icon(
             imageVector = Icons.Filled.LockOpen,
-            contentDescription = null, // Icono decorativo
+            contentDescription = null,
             modifier = Modifier.size(64.dp),
             tint = MaterialTheme.colorScheme.primary
         )
         Spacer(Modifier.height(16.dp))
 
         Text(
-            text = stringResource(R.string.login_title),
+            text = "Inicio de sesión",
             style = MaterialTheme.typography.headlineLarge
         )
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = stringResource(R.string.login_welcome),
+            text = "Bienvenido a Rentfage, la mejor app de ventas de casas",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
@@ -122,7 +120,7 @@ private fun LoginScreen(
         OutlinedTextField(
             value = email,
             onValueChange = onEmailChange,
-            label = { Text(stringResource(R.string.login_email_label)) },
+            label = { Text("Correo electrónico") },
             singleLine = true,
             isError = emailError != null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -137,14 +135,14 @@ private fun LoginScreen(
         OutlinedTextField(
             value = pass,
             onValueChange = onPassChange,
-            label = { Text(stringResource(R.string.login_password_label)) },
+            label = { Text("Contraseña") },
             singleLine = true,
             visualTransformation = if (showPass) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconButton(onClick = { showPass = !showPass }) {
                     Icon(
                         imageVector = if (showPass) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        contentDescription = if (showPass) stringResource(R.string.login_hide_password_cd) else stringResource(R.string.login_show_password_cd)
+                        contentDescription = if (showPass) "Ocultar contraseña" else "Mostrar contraseña"
                     )
                 }
             },
@@ -170,9 +168,9 @@ private fun LoginScreen(
             if (isSubmitting) {
                 CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(24.dp))
                 Spacer(Modifier.width(12.dp))
-                Text(stringResource(R.string.login_validating_button))
+                Text("Validando...")
             } else {
-                Text(stringResource(R.string.login_submit_button))
+                Text("Entrar")
             }
         }
 
@@ -187,7 +185,7 @@ private fun LoginScreen(
             onClick = onGoRegister,
             modifier = Modifier.fillMaxWidth().height(48.dp)
         ) {
-            Text(stringResource(R.string.login_create_account_button))
+            Text("Crear cuenta")
         }
     }
 }

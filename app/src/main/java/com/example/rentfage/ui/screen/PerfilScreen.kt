@@ -43,13 +43,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
-import com.example.rentfage.R
 import com.example.rentfage.ui.viewmodel.AuthViewModel
 import com.example.rentfage.ui.viewmodel.PerfilViewModel
 import java.io.File
@@ -71,12 +69,11 @@ private fun getImageUriForFile(context: Context, file: File): Uri {
 @Composable
 fun PerfilScreenVm(
     authViewModel: AuthViewModel, 
-    perfilViewModel: PerfilViewModel, // Se recibe el ViewModel, ya no se crea aquí.
+    perfilViewModel: PerfilViewModel,
     onLogout: () -> Unit, 
     onEditProfile: () -> Unit, 
     onChangePassword: () -> Unit
 ) {
-    // Se recargan los datos del usuario cada vez que esta pantalla aparece.
     LaunchedEffect(Unit) {
         perfilViewModel.cargarDatosUsuario()
     }
@@ -92,10 +89,10 @@ fun PerfilScreenVm(
     ) { success ->
         if (success) {
             photoUriString = pendingCaptureUri?.toString()
-            Toast.makeText(context, R.string.profile_picture_success_toast, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Foto tomada correctamente", Toast.LENGTH_SHORT).show()
         } else {
             pendingCaptureUri = null
-            Toast.makeText(context, R.string.profile_picture_error_toast, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "No se tomo ninguna foto", Toast.LENGTH_SHORT).show()
         }
     }
     var showDialog by remember { mutableStateOf(false) }
@@ -110,7 +107,7 @@ fun PerfilScreenVm(
     val onDeletePicture = {
         photoUriString = null
         showDialog = false
-        Toast.makeText(context, R.string.profile_picture_deleted_toast, Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Foto eliminada", Toast.LENGTH_SHORT).show()
     }
 
     PerfilScreen(
@@ -169,13 +166,13 @@ private fun PerfilScreen(
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp))
                     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Email, contentDescription = stringResource(R.string.profile_email_cd), tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.Default.Email, contentDescription = "Correo electrónico", tint = MaterialTheme.colorScheme.primary)
                             Spacer(modifier = Modifier.size(16.dp))
                             Text(text = email, style = MaterialTheme.typography.bodyLarge)
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Phone, contentDescription = stringResource(R.string.profile_phone_cd), tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.Default.Phone, contentDescription = "Teléfono", tint = MaterialTheme.colorScheme.primary)
                             Spacer(modifier = Modifier.size(16.dp))
                             Text(text = phone, style = MaterialTheme.typography.bodyLarge)
                         }
@@ -195,27 +192,27 @@ private fun PerfilScreen(
                         if (photoUriString != null) {
                             AsyncImage(
                                 model = Uri.parse(photoUriString),
-                                contentDescription = stringResource(R.string.profile_picture_taken_cd),
+                                contentDescription = "Foto Tomada",
                                 modifier = Modifier.fillMaxWidth().height(150.dp),
                                 contentScale = ContentScale.Crop
                             )
                         }
                         Button(onClick = onTakePicture, modifier = Modifier.fillMaxWidth()) {
-                            Text(if (photoUriString.isNullOrEmpty()) stringResource(R.string.profile_open_camera_button) else stringResource(R.string.profile_retake_picture_button))
+                            Text(if (photoUriString.isNullOrEmpty()) "Abrir Cámara" else "Volver a tomar")
                         }
                         if (!photoUriString.isNullOrEmpty()) {
                             OutlinedButton(onClick = { onShowDialogChange(true) }, modifier = Modifier.fillMaxWidth()) {
-                                Text(stringResource(R.string.profile_delete_picture_button))
+                                Text("Eliminar Foto")
                             }
                         }
                         
                         HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
                         Button(onClick = onEditProfile, modifier = Modifier.fillMaxWidth()) {
-                            Text(stringResource(R.string.profile_edit_profile_button))
+                            Text("Modificar Perfil")
                         }
                         Button(onClick = onChangePassword, modifier = Modifier.fillMaxWidth()) {
-                            Text(stringResource(R.string.profile_change_password_button))
+                            Text("Cambiar Contraseña")
                         }
                     }
                 }
@@ -223,23 +220,23 @@ private fun PerfilScreen(
         }
 
         OutlinedButton(onClick = onLogout, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-            Text(stringResource(R.string.profile_logout_button))
+            Text("Cerrar Sesión")
         }
     }
 
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { onShowDialogChange(false) },
-            title = { Text(stringResource(R.string.profile_delete_confirmation_title)) },
-            text = { Text(stringResource(R.string.profile_delete_confirmation_message)) },
+            title = { Text("Confirmación") },
+            text = { Text("¿Desea eliminar la foto?") },
             confirmButton = {
                 TextButton(onClick = onDeletePicture) {
-                    Text(stringResource(R.string.profile_accept_button))
+                    Text("Aceptar")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { onShowDialogChange(false) }) {
-                    Text(stringResource(R.string.profile_cancel_button))
+                    Text("Cancelar")
                 }
             }
         )
