@@ -43,6 +43,7 @@ import com.example.rentfage.ui.viewmodel.UserViewModel
 import com.example.rentfage.ui.viewmodel.UserViewModelFactory
 import kotlinx.coroutines.launch
 import android.app.Application
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
@@ -139,8 +140,23 @@ fun AppNavGraph(navController: NavHostController) {
             ) {
 
                 composable("home") { HomeScreenVm(onHouseClick = onHouseClick, casasViewModel = casasViewModel) }
-                composable("login") { LoginScreenVm(authViewModel = authViewModel, onLoginOkNavigateHome = goHome, onGoRegister = goRegister) }
-                composable("register") { RegisterScreenVm(authViewModel = authViewModel, onRegisteredNavigateLogin = goLogin, onGoLogin = goLogin) }
+                
+                composable("login") { 
+                    // Limpiamos el formulario de registro al entrar al login
+                    LaunchedEffect(Unit) {
+                        authViewModel.resetRegisterForm()
+                    }
+                    LoginScreenVm(authViewModel = authViewModel, onLoginOkNavigateHome = goHome, onGoRegister = goRegister) 
+                }
+                
+                composable("register") { 
+                    // Limpiamos el formulario de login al entrar al registro
+                    LaunchedEffect(Unit) {
+                        authViewModel.resetLoginForm()
+                    }
+                    RegisterScreenVm(authViewModel = authViewModel, onRegisteredNavigateLogin = goLogin, onGoLogin = goLogin) 
+                }
+                
                 composable("perfil") { PerfilScreenVm(authViewModel = authViewModel, perfilViewModel = perfilViewModel, onLogout = goLogin, onEditProfile = goEditProfile, onChangePassword = goChangePassword) }
 
                 composable(

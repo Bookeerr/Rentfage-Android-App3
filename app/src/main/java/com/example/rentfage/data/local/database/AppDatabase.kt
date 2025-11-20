@@ -40,7 +40,7 @@ abstract class AppDatabase: RoomDatabase(){
                             CoroutineScope(Dispatchers.IO).launch {
                                 val userDao = getInstance(context).userDao()
                                 
-                                // 1. GARANTIZAR ADMIN
+                                // ADMIN
                                 val existingAdmin = userDao.getByEmail("admin@rent.cl")
                                 if (existingAdmin != null) {
                                     val fixedAdmin = existingAdmin.copy(pass = "Admin123!", role = "ADMIN")
@@ -51,12 +51,12 @@ abstract class AppDatabase: RoomDatabase(){
                                     userDao.insertar(UserEntity(name = "Administrador", email = "admin@rent.cl", phone = "99999999", pass = "Admin123!", role = "ADMIN"))
                                 }
 
-                                // 2. GARANTIZAR VICTOR ROSENDO
+                                // VICTOR ROSENDO
                                 if (userDao.getByEmail("victor@rent.cl") == null) {
                                     userDao.insertar(UserEntity(name = "Victor Rosendo", email = "victor@rent.cl", phone = "12345678", pass = "User123!", role = "USER"))
                                 }
 
-                                // 3. GARANTIZAR GERALD SANTANA
+                                // GERALD SANTANA
                                 if (userDao.getByEmail("gerald@rent.cl") == null) {
                                     userDao.insertar(UserEntity(name = "Gerald Santana", email = "gerald@rent.cl", phone = "87654321", pass = "User123!", role = "USER"))
                                 }
@@ -68,7 +68,7 @@ abstract class AppDatabase: RoomDatabase(){
                                         CasaEntity(
                                             price = "$250.000 CLP",
                                             address = "Las Condes, Santiago",
-                                            details = "Acogedora casa de un piso, con jardín formado. Ideal para una vida tranquila cerca de la ciudad.",
+                                            details = "Acogedora casa de un piso con excelente conectividad. Cuenta con amplios espacios luminosos, cocina equipada, jardín formado y estacionamiento para dos vehículos. Ideal para una vida tranquila cerca de la ciudad, a pasos de parques y centros comerciales.",
                                             imageUri = "android.resource://com.example.rentfage/drawable/casa1",
                                             latitude = -33.4489,
                                             longitude = -70.6693
@@ -76,7 +76,7 @@ abstract class AppDatabase: RoomDatabase(){
                                         CasaEntity(
                                             price = "$450.000 CLP",
                                             address = "Providencia, Santiago",
-                                            details = "Amplia casa de 3 dormitorios y 2 baños, con un gran patio trasero y estacionamiento. Perfecta para una familia.",
+                                            details = "Amplia casa de 3 dormitorios y 2 baños, con un gran patio trasero y estacionamiento techado. Ubicada en un barrio residencial consolidado, esta propiedad es perfecta para una familia que busca comodidad, seguridad y cercanía a colegios, universidades y transporte público.",
                                             imageUri = "android.resource://com.example.rentfage/drawable/casa2",
                                             latitude = -33.4314,
                                             longitude = -70.6083
@@ -84,7 +84,7 @@ abstract class AppDatabase: RoomDatabase(){
                                         CasaEntity(
                                             price = "$320.000 CLP",
                                             address = "Los Trapenses, La Dehesa",
-                                            details = "Moderna casa estilo mediterráneo con excelente iluminación natural. Cuenta con piscina y quincho.",
+                                            details = "Espectacular casa moderna estilo mediterráneo con finas terminaciones y excelente iluminación natural. Disfruta de una vista privilegiada, piscina, quincho y amplias áreas verdes. Ubicada en condominio exclusivo con seguridad 24/7.",
                                             imageUri = "android.resource://com.example.rentfage/drawable/casa3",
                                             latitude = -33.4164,
                                             longitude = -70.5679

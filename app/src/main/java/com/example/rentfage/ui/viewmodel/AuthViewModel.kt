@@ -71,6 +71,15 @@ class AuthViewModel(application: Application, private val userRepository: UserRe
     private val _changePassword = MutableStateFlow(ChangePasswordUiState())
     val changePassword: StateFlow<ChangePasswordUiState> = _changePassword
 
+    // --- RESET FORMS ---
+    fun resetLoginForm() {
+        _login.value = LoginUiState()
+    }
+
+    fun resetRegisterForm() {
+        _register.value = RegisterUiState()
+    }
+
     // --- VALIDACIÓN ---
     private fun validateName(name: String): String? {
         if (name.isBlank()) return "El nombre no puede estar vacío."
