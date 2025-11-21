@@ -7,61 +7,90 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-// Tests para las funciones de validacion, usando Robolectric.
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class ValidatorsTest {
 
-    // --- Tests para validateEmail ---
-
-    // Verifica que un email con formato correcto es valido.
+    // --- TEST EMAIL ---
+    // Regla: "Formato de email inválido"
     @Test
-    fun `validateEmail con email valido no devuelve error`() {
-        val resultado = validateEmail("test@example.com")
-        assertNull("El email valido no deberia devolver error", resultado)
+    fun `validateEmail con email invalido devuelve mensaje correcto`() {
+        val resultado = validateEmail("correo-malo")
+        assertEquals("Formato de email inválido", resultado)
     }
 
-    // Verifica que un email con formato incorrecto devuelve error.
     @Test
-    fun `validateEmail con email invalido devuelve error`() {
-        val resultado = validateEmail("email-invalido")
-        assertEquals("Email no valido", resultado)
+    fun `validateEmail con email valido devuelve null (sin error)`() {
+        val resultado = validateEmail("juan@gmail.com")
+        assertNull(resultado)
     }
 
-    // --- Tests para validateStrongPassword ---
-
-    // Verifica que una contraseña que cumple todas las reglas es valida.
+    // --- TEST NOMBRE ---
+    // Regla: "Solo letras y espacios"
     @Test
-    fun `validateStrongPassword con contraseña valida no devuelve error`() {
-        val passwordValida = "Password123"
-        val resultado = validateStrongPassword(passwordValida)
-        assertEquals(null, resultado)
+    fun `validateNameLettersOnly con numeros devuelve error`() {
+        val resultado = validateNameLettersOnly("Juan 123")
+        assertEquals("Solo letras y espacios", resultado)
     }
 
-    // Verifica que una contraseña demasiado corta es rechazada.
     @Test
-    fun `validateStrongPassword con contraseña corta devuelve error de longitud`() {
-        val passwordCorta = "Pass1"
-        val mensajeEsperado = "La contraseña debe tener al menos 8 caracteres"
-        val resultado = validateStrongPassword(passwordCorta)
-        assertEquals(mensajeEsperado, resultado)
+    fun `validateNameLettersOnly con nombre valido devuelve null`() {
+        val resultado = validateNameLettersOnly("Juan Perez")
+        assertNull(resultado)
     }
 
-    // Verifica que una contraseña sin ningun numero es rechazada.
+    // --- TEST TELEFONO ---
+    // Regla: "Solo números" o "Debe tener entre 8 y 15 dígitos"
     @Test
-    fun `validateStrongPassword sin numero devuelve error de numero`() {
-        val passwordSinNumero = "PasswordSinNumeros"
-        val mensajeEsperado = "La contraseña debe contener al menos un numero"
-        val resultado = validateStrongPassword(passwordSinNumero)
-        assertEquals(mensajeEsperado, resultado)
+    fun `validatePhoneDigitsOnly con letras devuelve error`() {
+        val resultado = validatePhoneDigitsOnly("1234abcd")
+        assertEquals("Solo números", resultado)
     }
 
-    // Verifica que una contraseña sin mayusculas es rechazada.
     @Test
-    fun `validateStrongPassword sin mayuscula devuelve error de mayuscula`() {
-        val passwordSinMayuscula = "password123"
-        val mensajeEsperado = "La contraseña debe contener al menos una mayuscula"
-        val resultado = validateStrongPassword(passwordSinMayuscula)
-        assertEquals(mensajeEsperado, resultado)
+    fun `validatePhoneDigitsOnly muy corto devuelve error`() {
+        val resultado = validatePhoneDigitsOnly("123")
+        assertEquals("Debe tener entre 8 y 15 dígitos", resultado)
+    }
+
+    // --- TEST PASSWORD ---
+    // Reglas: "Mínimo 8 caracteres", "Debe incluir un número", etc.
+    
+    @Test
+    fun `validateStrongPassword valida devuelve null`() {
+        // Cumple todo: >8 chars, Mayus, Minus, Numero, Simbolo
+        val resultado = validateStrongPassword("Admin123!")
+        assertNull(resultado)
+    }
+
+    @Test
+    fun `validateStrongPassword corta devuelve error`() {
+        val resultado = validateStrongPassword("Ab1!")
+        assertEquals("Mínimo 8 caracteres", resultado)
+    }
+
+    @Test
+    fun `validateStrongPassword sin numero devuelve error`() {
+        val resultado = validateStrongPassword("AdminQwerty!")
+        assertEquals("Debe incluir un número", resultado)
+    }
+
+    @Test
+    fun `validateStrongPassword sin mayuscula devuelve error`() {
+        val resultado = validateStrongPassword("admin123!")
+        assertEquals("Debe incluir una mayúscula", resultado)
+    }
+
+    @Test
+    fun `validateStrongPassword sin simbolo devuelve error`() {
+        val resultado = validateStrongPassword("Admin12345")
+        assertEquals("Debe incluir un símbolo", resultado)
+    }
+
+    // --- TEST CONFIRMAR ---
+    @Test
+    fun `validateConfirm devuelve error si no coinciden`() {
+        val resultado = validateConfirm("Clave123", "Clave999")
+        assertEquals("Las contraseñas no coinciden", resultado)
     }
 }
