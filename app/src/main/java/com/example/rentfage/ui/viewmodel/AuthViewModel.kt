@@ -1,11 +1,12 @@
 package com.example.rentfage.ui.viewmodel
 
 import android.app.Application
+import android.util.Patterns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.rentfage.data.local.storage.UserPreferences
 import com.example.rentfage.data.repository.UserRepository
-import com.example.rentfage.domain.validation.* // Importamos las validaciones del profesor
+import com.example.rentfage.domain.validation.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -54,9 +55,12 @@ data class ChangePasswordUiState(
     val errorMsg: String? = null
 )
 
-class AuthViewModel(application: Application, private val userRepository: UserRepository) : AndroidViewModel(application) {
-
-    private val userPreferences = UserPreferences(application)
+// Modificamos el constructor para permitir inyectar UserPreferences (útil para tests)
+class AuthViewModel(
+    application: Application, 
+    private val userRepository: UserRepository,
+    private val userPreferences: UserPreferences = UserPreferences(application) // Valor por defecto: el real
+) : AndroidViewModel(application) {
 
     companion object {
         var activeUserEmail: String? = null
@@ -82,7 +86,6 @@ class AuthViewModel(application: Application, private val userRepository: UserRe
 
     // --- LOGIN ---
     fun onLoginEmailChange(value: String) {
-        // Usamos validateEmail del archivo Validators.kt
         _login.update { it.copy(email = value, emailError = validateEmail(value)) }
         recomputeLoginCanSubmit()
     }
@@ -94,7 +97,6 @@ class AuthViewModel(application: Application, private val userRepository: UserRe
 
     private fun recomputeLoginCanSubmit() {
         val s = _login.value
-        // El login es simple: si no hay error de email y hay contraseña, se puede enviar
         val can = s.emailError == null && s.email.isNotBlank() && s.pass.isNotBlank()
         _login.update { it.copy(canSubmit = can) }
     }
@@ -150,32 +152,27 @@ class AuthViewModel(application: Application, private val userRepository: UserRe
 
     // --- REGISTRO ---
     fun onNameChange(value: String) {
-        // Usamos validateNameLettersOnly del archivo Validators.kt
         _register.update { it.copy(name = value, nameError = validateNameLettersOnly(value)) }
         recomputeRegisterCanSubmit()
     }
 
     fun onRegisterEmailChange(value: String) {
-        // Usamos validateEmail del archivo Validators.kt
         _register.update { it.copy(email = value, emailError = validateEmail(value)) }
         recomputeRegisterCanSubmit()
     }
 
     fun onPhoneChange(value: String) {
-        // Usamos validatePhoneDigitsOnly del archivo Validators.kt
         _register.update { it.copy(phone = value, phoneError = validatePhoneDigitsOnly(value)) }
         recomputeRegisterCanSubmit()
     }
 	
     fun onRegisterPassChange(value: String) {
-        // Usamos validateStrongPassword y validateConfirm del archivo Validators.kt
         _register.update { it.copy(pass = value, passError = validateStrongPassword(value)) }
         _register.update { it.copy(confirmError = validateConfirm(it.pass, it.confirm)) }
         recomputeRegisterCanSubmit()
     }
 
     fun onConfirmChange(value: String) {
-        // Usamos validateConfirm del archivo Validators.kt
         _register.update { it.copy(confirm = value, confirmError = validateConfirm(it.pass, value)) }
         recomputeRegisterCanSubmit()
     }
@@ -220,14 +217,12 @@ class AuthViewModel(application: Application, private val userRepository: UserRe
     }
 
     fun onNewPasswordChange(value: String) {
-        // Usamos las nuevas validaciones
         _changePassword.update { it.copy(newPassword = value, newPasswordError = validateStrongPassword(value)) }
         _changePassword.update { it.copy(confirmNewPasswordError = validateConfirm(it.newPassword, it.confirmNewPassword)) }
         recomputeChangePasswordCanSubmit()
     }
 
     fun onConfirmNewPasswordChange(value: String) {
-        // Usamos las nuevas validaciones
         _changePassword.update { it.copy(confirmNewPassword = value, confirmNewPasswordError = validateConfirm(it.newPassword, value)) }
         recomputeChangePasswordCanSubmit()
     }
