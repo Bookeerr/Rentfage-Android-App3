@@ -27,7 +27,7 @@ class AdminResenaViewModelTest {
     }
 
     @Test
-    fun `uiState_expone_correctamente_la_lista_de_resenas`() {
+    fun al_iniciar_carga_todas_las_resenas_del_repositorio() {
         // Arrange: Preparamos datos falsos
         val listaResenas = listOf(
             ResenaEntidad(id = 1, userId = 1, comentario = "Reseña 1"),

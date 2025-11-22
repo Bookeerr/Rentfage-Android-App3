@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.rentfage.ui.viewmodel.AdminResenaViewModelTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-11-22T15:25:47.904Z" hostname="FRAN" time="3.657">
+<testsuite name="com.example.rentfage.ui.viewmodel.AdminResenaViewModelTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-11-22T15:33:01.978Z" hostname="FRAN" time="3.711">
   <properties/>
-  <testcase name="uiState_expone_correctamente_la_lista_de_resenas" classname="com.example.rentfage.ui.viewmodel.AdminResenaViewModelTest" time="3.657"/>
+  <testcase name="al_iniciar_carga_todas_las_resenas_del_repositorio" classname="com.example.rentfage.ui.viewmodel.AdminResenaViewModelTest" time="3.711"/>
   <system-out><![CDATA[WARNING: No manifest file found at .\AndroidManifest.xml.
 Falling back to the Android OS resources only.
 To remove this warning, annotate your test class with @Config(manifest=Config.NONE).
