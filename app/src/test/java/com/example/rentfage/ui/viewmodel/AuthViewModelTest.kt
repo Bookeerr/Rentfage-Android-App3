@@ -5,12 +5,14 @@ import com.example.rentfage.data.local.entity.UserEntity
 import com.example.rentfage.data.local.storage.UserPreferences
 import com.example.rentfage.data.repository.UserRepository
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLooper
 
@@ -20,16 +22,15 @@ class AuthViewModelTest {
 
     private lateinit var viewModel: AuthViewModel
     private lateinit var repository: UserRepository
-    private lateinit var userPreferences: UserPreferences // Mockeamos esto
+    private lateinit var userPreferences: UserPreferences 
     private lateinit var application: Application
 
     @Before
     fun setup() {
         repository = mockk(relaxed = true)
-        application = mockk(relaxed = true)
-        userPreferences = mockk(relaxed = true) // Creamos el mock de preferencias
+        application = RuntimeEnvironment.getApplication()
+        userPreferences = mockk(relaxed = true) // Usamos el mock para evitar esperas de disco
         
-        // Inyectamos el mock de preferencias en el ViewModel
         viewModel = AuthViewModel(application, repository, userPreferences)
     }
 
@@ -77,7 +78,6 @@ class AuthViewModelTest {
         
         coEvery { repository.login("juan@gmail.com", "Pass123!") } returns Result.success(usuarioFake)
         
-        // Simulamos que guardar en preferencias no hace nada (y es rapido)
         coEvery { userPreferences.setLoggedIn(true) } returns Unit
         coEvery { userPreferences.saveUserRole("USER") } returns Unit
 
@@ -113,5 +113,29 @@ class AuthViewModelTest {
         val estado = viewModel.login.value
         assertFalse(estado.success)
         assertEquals("Credenciales inválidas", estado.errorMsg)
+    }
+
+    // --- TEST CAMBIAR CONTRASEÑA (NUEVO) ---
+    @Test
+    fun submitChangePassword_llama_al_repositorio_con_datos_correctos() {
+        // Arrange: Simulamos un usuario logueado
+        AuthViewModel.activeUserEmail = "usuario@test.com"
+        
+        // Simulamos que el repositorio acepta el cambio
+        coEvery { repository.changePassword("usuario@test.com", "Vieja123!", "Nueva123!") } returns Result.success(Unit)
+
+        // Llenamos el formulario
+        viewModel.onCurrentPasswordChange("Vieja123!")
+        viewModel.onNewPasswordChange("Nueva123!")
+        viewModel.onConfirmNewPasswordChange("Nueva123!")
+
+        // Act
+        viewModel.submitChangePassword()
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+
+        // Assert
+        val estado = viewModel.changePassword.value
+        assertTrue("Debe ser exitoso", estado.success)
+        coVerify { repository.changePassword("usuario@test.com", "Vieja123!", "Nueva123!") }
     }
 }

@@ -19,7 +19,7 @@ class AdminResenaViewModel(private val repository: ResenaRepositorio) : ViewMode
         .map { resenas -> AdminResenaUiState(resenas = resenas) }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly, // CAMBIADO A Eagerly
             initialValue = AdminResenaUiState()
         )
 }

@@ -22,33 +22,28 @@ class CasasViewModelTest {
     private lateinit var repository: CasasRepository
 
     @Before
-    fun setup() {
-        // 1. Creamos el Mock del repositorio
+    fun setUp() {
         repository = mockk(relaxed = true)
-        
         // Configuramos respuestas por defecto para evitar errores al iniciar el ViewModel
         coEvery { repository.todasLasCasas } returns flowOf(emptyList())
         coEvery { repository.casasFavoritas } returns flowOf(emptyList())
         
-        // 2. Iniciamos el ViewModel
         viewModel = CasasViewModel(repository)
     }
 
-    // --- TEST DE CARGA INICIAL ---
     @Test
-    fun al_iniciar_carga_la_lista_de_casas_desde_el_repositorio() {
-        // Arrange: Preparamos una lista falsa
-        val casasFalsas = listOf(
+    fun al_iniciar_carga_la_lista_de_casas() {
+        // Arrange
+        val listaCasas = listOf(
             CasaEntity(id = 1, price = "100", address = "Calle 1", details = "D", imageUri = "U", latitude = 0.0, longitude = 0.0)
         )
-        // Creamos un repositorio especifico para este test
         val repoTest = mockk<CasasRepository>(relaxed = true)
-        coEvery { repoTest.todasLasCasas } returns flowOf(casasFalsas)
+        coEvery { repoTest.todasLasCasas } returns flowOf(listaCasas)
         coEvery { repoTest.casasFavoritas } returns flowOf(emptyList())
         
-        // Act: Iniciamos el ViewModel con ese repo
+        // Act
         val vm = CasasViewModel(repoTest)
-        // Damos tiempo para que cargue (StateFlow)
+        // Ya no se necesitan trucos. El StateFlow se inicia Eagerly.
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
         // Assert
@@ -56,23 +51,19 @@ class CasasViewModelTest {
         assertEquals("Calle 1", vm.uiState.value.casas[0].address)
     }
 
-    // --- TEST DE FAVORITOS ---
     @Test
-    fun toggleFavorite_llama_al_repositorio_para_actualizar_estado() {
-        // Arrange: Casa sin favorito
+    fun toggleFavorite_llama_al_repositorio() {
         val casa = CasaEntity(id = 1, price = "100", address = "Calle 1", details = "D", imageUri = "U", latitude = 0.0, longitude = 0.0, isFavorite = false)
         
-        // Act: Pulsamos el corazon
         viewModel.toggleFavorite(casa)
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
-        // Assert: Verificamos que se guardo con favorite = true
+        // Verifica que se guardó con isFavorite = true
         coVerify { repository.actualizarCasa(match { it.id == 1 && it.isFavorite == true }) }
     }
 
-    // --- TEST DE BORRAR ---
     @Test
-    fun deleteCasa_llama_al_repositorio_para_borrar() {
+    fun deleteCasa_llama_al_repositorio() {
         val casa = CasaEntity(id = 1, price = "100", address = "Calle 1", details = "D", imageUri = "U", latitude = 0.0, longitude = 0.0)
         
         viewModel.deleteCasa(casa)
@@ -81,36 +72,36 @@ class CasasViewModelTest {
         coVerify { repository.borrarCasa(casa) }
     }
 
-    // --- TEST DE CREAR/EDITAR (ADMIN) ---
     @Test
-    fun saveProperty_no_guarda_si_el_formulario_esta_incompleto() {
-        // Arrange: Reseteamos formulario (vacio)
-        viewModel.resetAddEditState()
-        
-        // Act: Intentamos guardar
+    fun saveProperty_guarda_si_formulario_valido() {
+        // Arrange: Llenamos el formulario
+        viewModel.onAddressChange("Av Siempre Viva")
+        viewModel.onPriceChange("100000")
+        viewModel.onDetailsChange("Detalles")
+        viewModel.onLatitudeChange("10.0")
+        viewModel.onLongitudeChange("20.0")
+        viewModel.onImageUriChange("uri")
+
+        // Act: Guardar nueva casa (id = null)
         viewModel.saveProperty(null)
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
-        // Assert: No debio llamar a insertar
-        coVerify(exactly = 0) { repository.insertarCasa(any()) }
+        // Assert
+        coVerify { repository.insertarCasa(any()) }
+        assertTrue(viewModel.addEditState.value.saveSuccess)
     }
 
     @Test
-    fun saveProperty_guarda_si_el_formulario_es_valido() {
-        // Arrange: Llenamos todos los campos
-        viewModel.onAddressChange("Av Siempre Viva")
-        viewModel.onPriceChange("100000")
-        viewModel.onDetailsChange("Linda casa")
-        viewModel.onLatitudeChange("10.5")
-        viewModel.onLongitudeChange("20.5")
-        viewModel.onImageUriChange("uri_imagen")
+    fun saveProperty_no_guarda_si_faltan_datos() {
+        // Arrange: Formulario incompleto (solo direccion)
+        viewModel.resetAddEditState()
+        viewModel.onAddressChange("Solo tengo direccion")
 
-        // Act: Guardamos (id = null significa nueva casa)
+        // Act
         viewModel.saveProperty(null)
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
-        // Assert: Verifica que se llamo a insertar y el estado cambio a exito
-        coVerify { repository.insertarCasa(any()) }
-        assertTrue(viewModel.addEditState.value.saveSuccess)
+        // Assert: NO debe llamar a insertar
+        coVerify(exactly = 0) { repository.insertarCasa(any()) }
     }
 }

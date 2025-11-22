@@ -34,61 +34,52 @@ class HistorialViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(HistorialUiState())
     val uiState: StateFlow<HistorialUiState> = _uiState.asStateFlow()
 
-    // Nuevo canal para mensajes de snackbar
     private val _messageFlow = MutableSharedFlow<String>()
     val messageFlow: SharedFlow<String> = _messageFlow.asSharedFlow()
 
-    companion object {
-        private val solicitudesGlobales = mutableListOf<Solicitud>()
-    }
-
-    init {
-        viewModelScope.launch {
-            cargarSolicitudesDeUsuario()
-        }
-    }
+    // Ya no es un companion object. Cada ViewModel tiene su propia lista.
+    private val solicitudesEnMemoria = mutableListOf<Solicitud>()
 
     fun addSolicitud(casa: CasaEntity) {
-        val currentUserEmail = AuthViewModel.activeUserEmail
-        if (currentUserEmail != null) {
-            val newId = (solicitudesGlobales.maxOfOrNull { it.id } ?: 0) + 1
-            val fechaActual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+        val currentUserEmail = AuthViewModel.activeUserEmail ?: return
+        
+        val newId = (solicitudesEnMemoria.maxOfOrNull { it.id } ?: 0) + 1
+        val fechaActual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
 
-            val nuevaSolicitud = Solicitud(
-                id = newId,
-                usuarioEmail = currentUserEmail,
-                casa = casa,
-                fecha = fechaActual,
-                estado = EstadoSolicitud.Pendiente
-            )
+        val nuevaSolicitud = Solicitud(
+            id = newId,
+            usuarioEmail = currentUserEmail,
+            casa = casa,
+            fecha = fechaActual,
+            estado = EstadoSolicitud.Pendiente
+        )
 
-            solicitudesGlobales.add(nuevaSolicitud)
-            cargarSolicitudesDeUsuario()
-        }
+        solicitudesEnMemoria.add(nuevaSolicitud)
+        cargarSolicitudesDeUsuario() // Actualiza la UI para el usuario actual
     }
 
     fun cargarSolicitudesDeUsuario() {
         val currentUserEmail = AuthViewModel.activeUserEmail
-        if (currentUserEmail != null) {
-            _uiState.update {
-                it.copy(solicitudes = solicitudesGlobales.filter { s -> s.usuarioEmail == currentUserEmail })
+        _uiState.update {
+            val solicitudesFiltradas = if (currentUserEmail != null) {
+                solicitudesEnMemoria.filter { s -> s.usuarioEmail == currentUserEmail }
+            } else {
+                emptyList()
             }
-        } else {
-            _uiState.update { it.copy(solicitudes = emptyList()) }
+            it.copy(solicitudes = solicitudesFiltradas)
         }
     }
 
     // --- Funciones de Admin ---
 
     fun cargarTodasLasSolicitudes() {
-        _uiState.update { it.copy(solicitudes = solicitudesGlobales) }
+        _uiState.update { it.copy(solicitudes = solicitudesEnMemoria) }
     }
 
     fun aprobarSolicitud(solicitudId: Int) {
-        val solicitud = solicitudesGlobales.find { it.id == solicitudId }
-        solicitud?.let {
+        solicitudesEnMemoria.find { it.id == solicitudId }?.let {
             it.estado = EstadoSolicitud.Aprobada
-            cargarTodasLasSolicitudes()
+            cargarTodasLasSolicitudes() // Recargamos para que el admin vea el cambio
             viewModelScope.launch {
                 _messageFlow.emit("Solicitud #${it.id} aprobada con éxito")
             }
@@ -96,8 +87,7 @@ class HistorialViewModel : ViewModel() {
     }
 
     fun rechazarSolicitud(solicitudId: Int) {
-        val solicitud = solicitudesGlobales.find { it.id == solicitudId }
-        solicitud?.let {
+        solicitudesEnMemoria.find { it.id == solicitudId }?.let {
             it.estado = EstadoSolicitud.Rechazada
             cargarTodasLasSolicitudes()
             viewModelScope.launch {

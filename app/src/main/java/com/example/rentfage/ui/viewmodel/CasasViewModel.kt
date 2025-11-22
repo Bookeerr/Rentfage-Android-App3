@@ -36,11 +36,11 @@ class CasasViewModel(private val repository: CasasRepository) : ViewModel() {
     // --- ESTADOS DE UI ---
     val uiState: StateFlow<CasasUiState> = repository.todasLasCasas
         .map { casasList -> CasasUiState(casas = casasList) }
-        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = CasasUiState())
+        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = CasasUiState()) // CAMBIADO A Eagerly
 
     val favoritasUiState: StateFlow<CasasUiState> = repository.casasFavoritas
         .map { casasList -> CasasUiState(casas = casasList) }
-        .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = CasasUiState())
+        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = CasasUiState()) // CAMBIADO A Eagerly
 
     private val _addEditState = MutableStateFlow(AddEditPropertyUiState())
     val addEditState: StateFlow<AddEditPropertyUiState> = _addEditState.asStateFlow()
