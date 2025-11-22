@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -53,19 +54,19 @@ fun defaultDrawerItems(
     onFavoritos: () -> Unit,
     onHistorial: () -> Unit,
     onNosotros: () -> Unit,
+    onMiResena: () -> Unit, // Nuevo parámetro
     onAdmin: () -> Unit,
     userRole: String?
 ): List<DrawerItem> {
-    // Novedad: Se reordena la lista para que tenga un orden más lógico.
     val baseItems = mutableListOf(
         DrawerItem("home", "Ventas de casas", "Propiedades Disponibles", Icons.Filled.Home, onHome),
         DrawerItem("favoritos", "Mis Favoritos", "Mis Favoritos", Icons.Filled.Favorite, onFavoritos),
         DrawerItem("historial", "Historial de Solicitudes", "Historial de Solicitudes", Icons.Filled.History, onHistorial),
         DrawerItem("perfil", "Mi Perfil", "Mi Perfil", Icons.Filled.AccountCircle, onPerfil),
+        DrawerItem("mi_resena", "Mi Reseña", "Mi Reseña", Icons.Filled.Feedback, onMiResena), // Nuevo Item
         DrawerItem("nosotros", "Nosotros", "Sobre Nosotros", Icons.Filled.Info, onNosotros)
     )
 
-    // Corregido: Ahora compara ignorando mayúsculas/minúsculas para aceptar "ADMIN", "Admin", etc.
     if (userRole.equals("Admin", ignoreCase = true)) {
         baseItems.add(
             DrawerItem("admin_dashboard", "Panel de Administrador", "Panel de Administrador", Icons.Filled.AdminPanelSettings, onAdmin)

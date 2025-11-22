@@ -6,21 +6,24 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.rentfage.data.local.dao.CasaDao
+import com.example.rentfage.data.local.dao.ResenaDao
 import com.example.rentfage.data.local.dao.UserDao
 import com.example.rentfage.data.local.entity.CasaEntity
+import com.example.rentfage.data.local.entity.ResenaEntidad
 import com.example.rentfage.data.local.entity.UserEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [UserEntity::class, CasaEntity::class],
-    version = 5, 
+    entities = [UserEntity::class, CasaEntity::class, ResenaEntidad::class], // Añadimos ResenaEntidad
+    version = 6,  // Subimos la versión
     exportSchema = true
 )
 abstract class AppDatabase: RoomDatabase(){
     abstract fun userDao(): UserDao
     abstract fun casaDao(): CasaDao
+    abstract fun resenaDao(): ResenaDao // Añadimos el nuevo DAO
 
     companion object{
         @Volatile

@@ -27,7 +27,8 @@ fun AdminDashboardScreen(
     casasViewModel: CasasViewModel,
     onGoToPropertyList: () -> Unit,
     onGoToSolicitudes: () -> Unit,
-    onGoToUserList: () -> Unit
+    onGoToUserList: () -> Unit,
+    onGoToResenas: () -> Unit // Nuevo parámetro
 ) {
     val casasState by casasViewModel.uiState.collectAsState()
     val totalCasas = casasState.casas.size
@@ -76,6 +77,10 @@ fun AdminDashboardScreen(
                 Button(onClick = onGoToUserList, modifier = Modifier.fillMaxWidth()) {
                     Text("Gestionar Usuarios")
                 }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(onClick = onGoToResenas, modifier = Modifier.fillMaxWidth()) { // Nuevo botón
+                    Text("Gestionar Reseñas")
+                }
             }
         }
     }
@@ -89,6 +94,7 @@ fun AdminDashboardScreenPreview() {
         casasViewModel = casasViewModel,
         onGoToPropertyList = {},
         onGoToSolicitudes = {},
-        onGoToUserList = {}
+        onGoToUserList = {},
+        onGoToResenas = {}
     )
 }

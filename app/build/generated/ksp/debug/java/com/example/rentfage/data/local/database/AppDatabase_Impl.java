@@ -13,6 +13,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 import com.example.rentfage.data.local.dao.CasaDao;
 import com.example.rentfage.data.local.dao.CasaDao_Impl;
+import com.example.rentfage.data.local.dao.ResenaDao;
+import com.example.rentfage.data.local.dao.ResenaDao_Impl;
 import com.example.rentfage.data.local.dao.UserDao;
 import com.example.rentfage.data.local.dao.UserDao_Impl;
 import java.lang.Class;
@@ -34,22 +36,26 @@ public final class AppDatabase_Impl extends AppDatabase {
 
   private volatile CasaDao _casaDao;
 
+  private volatile ResenaDao _resenaDao;
+
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(5) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(6) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `users` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `email` TEXT NOT NULL, `phone` TEXT NOT NULL, `pass` TEXT NOT NULL, `role` TEXT NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `casas` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `price` TEXT NOT NULL, `address` TEXT NOT NULL, `details` TEXT NOT NULL, `imageUri` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `isFavorite` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `resenas` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `comentario` TEXT NOT NULL, `fechaCreacion` INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4c0a3192a84e3e2e9aa4ccc36b0745e2')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4ebec72fc9f8a08fd0b586ae813bbf41')");
       }
 
       @Override
       public void dropAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS `users`");
         db.execSQL("DROP TABLE IF EXISTS `casas`");
+        db.execSQL("DROP TABLE IF EXISTS `resenas`");
         final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
         if (_callbacks != null) {
           for (RoomDatabase.Callback _callback : _callbacks) {
@@ -127,9 +133,23 @@ public final class AppDatabase_Impl extends AppDatabase {
                   + " Expected:\n" + _infoCasas + "\n"
                   + " Found:\n" + _existingCasas);
         }
+        final HashMap<String, TableInfo.Column> _columnsResenas = new HashMap<String, TableInfo.Column>(4);
+        _columnsResenas.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsResenas.put("userId", new TableInfo.Column("userId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsResenas.put("comentario", new TableInfo.Column("comentario", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsResenas.put("fechaCreacion", new TableInfo.Column("fechaCreacion", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysResenas = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesResenas = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoResenas = new TableInfo("resenas", _columnsResenas, _foreignKeysResenas, _indicesResenas);
+        final TableInfo _existingResenas = TableInfo.read(db, "resenas");
+        if (!_infoResenas.equals(_existingResenas)) {
+          return new RoomOpenHelper.ValidationResult(false, "resenas(com.example.rentfage.data.local.entity.ResenaEntidad).\n"
+                  + " Expected:\n" + _infoResenas + "\n"
+                  + " Found:\n" + _existingResenas);
+        }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "4c0a3192a84e3e2e9aa4ccc36b0745e2", "5608ec6a1a9301a43ca916d44f3ba817");
+    }, "4ebec72fc9f8a08fd0b586ae813bbf41", "d1fb6da2a20b96ef32d2105ba0a9991d");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -140,7 +160,7 @@ public final class AppDatabase_Impl extends AppDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "users","casas");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "users","casas","resenas");
   }
 
   @Override
@@ -151,6 +171,7 @@ public final class AppDatabase_Impl extends AppDatabase {
       super.beginTransaction();
       _db.execSQL("DELETE FROM `users`");
       _db.execSQL("DELETE FROM `casas`");
+      _db.execSQL("DELETE FROM `resenas`");
       super.setTransactionSuccessful();
     } finally {
       super.endTransaction();
@@ -167,6 +188,7 @@ public final class AppDatabase_Impl extends AppDatabase {
     final HashMap<Class<?>, List<Class<?>>> _typeConvertersMap = new HashMap<Class<?>, List<Class<?>>>();
     _typeConvertersMap.put(UserDao.class, UserDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(CasaDao.class, CasaDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(ResenaDao.class, ResenaDao_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -209,6 +231,20 @@ public final class AppDatabase_Impl extends AppDatabase {
           _casaDao = new CasaDao_Impl(this);
         }
         return _casaDao;
+      }
+    }
+  }
+
+  @Override
+  public ResenaDao resenaDao() {
+    if (_resenaDao != null) {
+      return _resenaDao;
+    } else {
+      synchronized(this) {
+        if(_resenaDao == null) {
+          _resenaDao = new ResenaDao_Impl(this);
+        }
+        return _resenaDao;
       }
     }
   }
