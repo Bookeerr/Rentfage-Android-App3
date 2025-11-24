@@ -8,13 +8,14 @@ import com.example.rentfage.data.remote.dto.UserDto
 import com.example.rentfage.data.remote.dto.buildRegisterUserDto
 import com.example.rentfage.data.remote.dto.toEntity
 import retrofit2.HttpException
+import java.io.IOException
 
 class UserRepository(
     private val userDao: UserDao,
     private val usuariosApi: UsuariosApiService = RemoteModule.usuariosApi
 ) {
 
-    //  REMOTO
+    // --- REMOTO ---
     suspend fun syncUsuarios(): Result<Unit> =
         runCatching {
             val response = usuariosApi.obtenerUsuarios()
@@ -27,31 +28,46 @@ class UserRepository(
                 dto.toEntity(fallbackPass)
             }
             
-            // CORRECCIÓN: Usamos upsert en lugar de borrar todo.
-            // Esto conserva los usuarios locales (como el admin) que no vienen del servidor.
             if (entities.isNotEmpty()) {
                 userDao.insertarTodos(entities)
             }
         }
 
-    //inicio sesion app
-    suspend fun login(email: String, pass: String): Result<UserEntity> =
-        runCatching {
-            val response = usuariosApi.login(email, pass)
-            if (!response.isSuccessful) throw HttpException(response)
-
-            // Sincronizamos después del login para traer datos actualizados
-            syncUsuarios().getOrElse { /* ignoramos para no bloquear login */ }
-
-            // Buscamos el usuario en la BD local (que ahora debe estar actualizada)
-            val user = userDao.getByEmail(email)
-                ?: throw IllegalArgumentException("Usuario no encontrado después de sincronizar")
-
-            // Actualizamos la contraseña local por si acaso
-            val updatedUser = user.copy(pass = pass)
-            userDao.upsert(updatedUser)
-            updatedUser
+    // Inicio de sesión "A PRUEBA DE BALAS"
+    suspend fun login(email: String, pass: String): Result<UserEntity> = runCatching {
+        // CASO ESPECIAL: Si es el admin, solo validamos localmente.
+        if (email == "admin@rent.cl") {
+            val adminUser = userDao.getByEmail(email)
+            if (adminUser != null && adminUser.pass == pass) {
+                return@runCatching adminUser
+            } else {
+                throw IllegalArgumentException("Credenciales de administrador incorrectas")
+            }
         }
+
+        // PARA USUARIOS NORMALES:
+        try {
+            // 1. Intentamos login remoto
+            val response = usuariosApi.login(email, pass)
+            if (response.isSuccessful) {
+                syncUsuarios().getOrThrow() // Sincronizamos y si falla, el login falla.
+                // Devolvemos el usuario desde la BD local, que ahora está actualizada.
+                userDao.getByEmail(email) ?: throw IllegalStateException("Usuario no encontrado después de sincronizar")
+            } else {
+                // Si el servidor responde un error (401, 404), fallamos inmediatamente.
+                throw HttpException(response)
+            }
+        } catch (e: IOException) {
+            // 2. MODO OFFLINE: Si hay un error de red (sin internet), intentamos login local.
+            val localUser = userDao.getByEmail(email)
+            if (localUser != null && localUser.pass == pass) {
+                localUser // Login offline exitoso
+            } else {
+                // Si falla en modo offline, lanzamos el error de red original.
+                throw IOException("Sin conexión. Verifique sus credenciales e intente de nuevo.", e)
+            }
+        }
+    }
 
     //registro
     suspend fun register(name: String, email: String, phone: String, pass: String): Result<Long> =
@@ -97,7 +113,6 @@ class UserRepository(
         }
     }
 
-    // Nueva función para cambiar contraseña (local).
     suspend fun changePassword(email: String, currentPass: String, newPass: String): Result<Unit> {
         val user = userDao.getByEmail(email)
             ?: return Result.failure(IllegalArgumentException("Usuario no encontrado"))
@@ -111,7 +126,6 @@ class UserRepository(
         return Result.success(Unit)
     }
 
-    // Nueva función para actualizar perfil (nombre y teléfono) - local.
     suspend fun updateProfile(email: String, newName: String, newPhone: String): Result<Unit> {
         val user = userDao.getByEmail(email)
             ?: return Result.failure(IllegalArgumentException("Usuario no encontrado"))
