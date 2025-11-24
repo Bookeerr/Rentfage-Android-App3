@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.rentfage.ui.viewmodel.CasasViewModelTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2025-11-23T03:10:52.016Z" hostname="FRAN" time="0.259">
+  <properties/>
+  <testcase name="deleteCasa_llama_al_repositorio" classname="com.example.rentfage.ui.viewmodel.CasasViewModelTest" time="0.098"/>
+  <testcase name="saveProperty_guarda_si_formulario_valido" classname="com.example.rentfage.ui.viewmodel.CasasViewModelTest" time="0.047"/>
+  <testcase name="saveProperty_no_guarda_si_faltan_datos" classname="com.example.rentfage.ui.viewmodel.CasasViewModelTest" time="0.034"/>
+  <testcase name="al_iniciar_carga_la_lista_de_casas" classname="com.example.rentfage.ui.viewmodel.CasasViewModelTest" time="0.03"/>
+  <testcase name="toggleFavorite_llama_al_repositorio" classname="com.example.rentfage.ui.viewmodel.CasasViewModelTest" time="0.049"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

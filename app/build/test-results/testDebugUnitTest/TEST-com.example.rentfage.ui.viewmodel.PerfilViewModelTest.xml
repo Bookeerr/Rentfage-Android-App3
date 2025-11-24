@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.rentfage.ui.viewmodel.PerfilViewModelTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2025-11-23T03:10:52.385Z" hostname="FRAN" time="0.134">
+  <properties/>
+  <testcase name="alEditarNombre_conDatoInvalido_seMuestraErrorDeValidacion" classname="com.example.rentfage.ui.viewmodel.PerfilViewModelTest" time="0.07"/>
+  <testcase name="cargarDatosUsuario_debeActualizarElEstado_conDatosDelUsuario" classname="com.example.rentfage.ui.viewmodel.PerfilViewModelTest" time="0.027"/>
+  <testcase name="updateUser_cuandoFormularioEsValido_llamaAlRepositorioCorrectamente" classname="com.example.rentfage.ui.viewmodel.PerfilViewModelTest" time="0.037"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

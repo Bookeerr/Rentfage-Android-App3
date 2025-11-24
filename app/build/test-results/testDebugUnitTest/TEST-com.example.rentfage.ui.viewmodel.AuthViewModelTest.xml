@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.rentfage.ui.viewmodel.AuthViewModelTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2025-11-23T03:10:51.353Z" hostname="FRAN" time="0.645">
+  <properties/>
+  <testcase name="submitLogin_con_credenciales_correctas_cambia_estado_a_exito" classname="com.example.rentfage.ui.viewmodel.AuthViewModelTest" time="0.456"/>
+  <testcase name="al_iniciar_el_formulario_login_esta_vacio" classname="com.example.rentfage.ui.viewmodel.AuthViewModelTest" time="0.035"/>
+  <testcase name="al_escribir_datos_validos_se_habilita_boton_login" classname="com.example.rentfage.ui.viewmodel.AuthViewModelTest" time="0.033"/>
+  <testcase name="submitLogin_con_error_muestra_mensaje" classname="com.example.rentfage.ui.viewmodel.AuthViewModelTest" time="0.039"/>
+  <testcase name="submitChangePassword_llama_al_repositorio_con_datos_correctos" classname="com.example.rentfage.ui.viewmodel.AuthViewModelTest" time="0.053"/>
+  <testcase name="al_escribir_email_invalido_aparece_error" classname="com.example.rentfage.ui.viewmodel.AuthViewModelTest" time="0.028"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

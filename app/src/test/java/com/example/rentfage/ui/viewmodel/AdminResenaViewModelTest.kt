@@ -36,13 +36,13 @@ class AdminResenaViewModelTest {
         // Simulamos que el repositorio emite esta lista
         every { repository.todasLasResenas } returns flowOf(listaResenas)
 
-        // Act: Creamos el ViewModel
+        //  Creamos el ViewModel
         viewModel = AdminResenaViewModel(repository)
         
-        // IMPORTANTE: Dejamos que Robolectric avance los hilos para que el StateFlow se actualice
+        // Dejamos que Robolectric avance los hilos para que el StateFlow se actualice
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
-        // Assert: Ahora sí, el valor del state debería estar actualizado
+        //  Ahora sí, el valor del state debería estar actualizado
         val estado = viewModel.uiState.value
         assertEquals(2, estado.resenas.size)
         assertEquals("Reseña 1", estado.resenas[0].comentario)

@@ -28,10 +28,12 @@ import com.example.rentfage.ui.viewmodel.CasasViewModel
 
 @Composable
 fun FavoritosScreenVm(onHouseClick: (Int) -> Unit, casasViewModel: CasasViewModel) {
-    val state by casasViewModel.favoritasUiState.collectAsStateWithLifecycle()
+    // CORRECCIÓN: Apuntamos al StateFlow correcto `casasFavoritas`
+    val casasFavoritas by casasViewModel.casasFavoritas.collectAsStateWithLifecycle()
 
     FavoritosScreen(
-        casas = state.casas,
+        // CORRECCIÓN: Pasamos la lista directamente
+        casas = casasFavoritas,
         onHouseClick = onHouseClick,
         onToggleFavorite = { casa -> casasViewModel.toggleFavorite(casa) }
     )

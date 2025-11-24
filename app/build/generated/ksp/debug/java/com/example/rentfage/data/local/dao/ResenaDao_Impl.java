@@ -8,6 +8,7 @@ import androidx.room.CoroutinesRoom;
 import androidx.room.EntityInsertionAdapter;
 import androidx.room.RoomDatabase;
 import androidx.room.RoomSQLiteQuery;
+import androidx.room.SharedSQLiteStatement;
 import androidx.room.util.CursorUtil;
 import androidx.room.util.DBUtil;
 import androidx.sqlite.db.SupportSQLiteStatement;
@@ -34,13 +35,15 @@ public final class ResenaDao_Impl implements ResenaDao {
 
   private final EntityInsertionAdapter<ResenaEntidad> __insertionAdapterOfResenaEntidad;
 
+  private final SharedSQLiteStatement __preparedStmtOfBorrarTodas;
+
   public ResenaDao_Impl(@NonNull final RoomDatabase __db) {
     this.__db = __db;
     this.__insertionAdapterOfResenaEntidad = new EntityInsertionAdapter<ResenaEntidad>(__db) {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `resenas` (`id`,`userId`,`comentario`,`fechaCreacion`) VALUES (nullif(?, 0),?,?,?)";
+        return "INSERT OR REPLACE INTO `resenas` (`id`,`userId`,`propiedadId`,`calificacion`,`comentario`,`fechaCreacion`) VALUES (nullif(?, 0),?,?,?,?,?)";
       }
 
       @Override
@@ -48,8 +51,18 @@ public final class ResenaDao_Impl implements ResenaDao {
           @NonNull final ResenaEntidad entity) {
         statement.bindLong(1, entity.getId());
         statement.bindLong(2, entity.getUserId());
-        statement.bindString(3, entity.getComentario());
-        statement.bindLong(4, entity.getFechaCreacion());
+        statement.bindLong(3, entity.getPropiedadId());
+        statement.bindLong(4, entity.getCalificacion());
+        statement.bindString(5, entity.getComentario());
+        statement.bindLong(6, entity.getFechaCreacion());
+      }
+    };
+    this.__preparedStmtOfBorrarTodas = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "DELETE FROM resenas";
+        return _query;
       }
     };
   }
@@ -73,6 +86,48 @@ public final class ResenaDao_Impl implements ResenaDao {
   }
 
   @Override
+  public Object insertarTodas(final List<ResenaEntidad> resenas,
+      final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        __db.beginTransaction();
+        try {
+          __insertionAdapterOfResenaEntidad.insert(resenas);
+          __db.setTransactionSuccessful();
+          return Unit.INSTANCE;
+        } finally {
+          __db.endTransaction();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object borrarTodas(final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfBorrarTodas.acquire();
+        try {
+          __db.beginTransaction();
+          try {
+            _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return Unit.INSTANCE;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfBorrarTodas.release(_stmt);
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
   public Object obtenerResenaPorUserId(final int userId,
       final Continuation<? super ResenaEntidad> $completion) {
     final String _sql = "SELECT * FROM resenas WHERE userId = ? ORDER BY fechaCreacion DESC LIMIT 1";
@@ -88,6 +143,8 @@ public final class ResenaDao_Impl implements ResenaDao {
         try {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
           final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfPropiedadId = CursorUtil.getColumnIndexOrThrow(_cursor, "propiedadId");
+          final int _cursorIndexOfCalificacion = CursorUtil.getColumnIndexOrThrow(_cursor, "calificacion");
           final int _cursorIndexOfComentario = CursorUtil.getColumnIndexOrThrow(_cursor, "comentario");
           final int _cursorIndexOfFechaCreacion = CursorUtil.getColumnIndexOrThrow(_cursor, "fechaCreacion");
           final ResenaEntidad _result;
@@ -96,11 +153,15 @@ public final class ResenaDao_Impl implements ResenaDao {
             _tmpId = _cursor.getInt(_cursorIndexOfId);
             final int _tmpUserId;
             _tmpUserId = _cursor.getInt(_cursorIndexOfUserId);
+            final long _tmpPropiedadId;
+            _tmpPropiedadId = _cursor.getLong(_cursorIndexOfPropiedadId);
+            final int _tmpCalificacion;
+            _tmpCalificacion = _cursor.getInt(_cursorIndexOfCalificacion);
             final String _tmpComentario;
             _tmpComentario = _cursor.getString(_cursorIndexOfComentario);
             final long _tmpFechaCreacion;
             _tmpFechaCreacion = _cursor.getLong(_cursorIndexOfFechaCreacion);
-            _result = new ResenaEntidad(_tmpId,_tmpUserId,_tmpComentario,_tmpFechaCreacion);
+            _result = new ResenaEntidad(_tmpId,_tmpUserId,_tmpPropiedadId,_tmpCalificacion,_tmpComentario,_tmpFechaCreacion);
           } else {
             _result = null;
           }
@@ -125,6 +186,8 @@ public final class ResenaDao_Impl implements ResenaDao {
         try {
           final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
           final int _cursorIndexOfUserId = CursorUtil.getColumnIndexOrThrow(_cursor, "userId");
+          final int _cursorIndexOfPropiedadId = CursorUtil.getColumnIndexOrThrow(_cursor, "propiedadId");
+          final int _cursorIndexOfCalificacion = CursorUtil.getColumnIndexOrThrow(_cursor, "calificacion");
           final int _cursorIndexOfComentario = CursorUtil.getColumnIndexOrThrow(_cursor, "comentario");
           final int _cursorIndexOfFechaCreacion = CursorUtil.getColumnIndexOrThrow(_cursor, "fechaCreacion");
           final List<ResenaEntidad> _result = new ArrayList<ResenaEntidad>(_cursor.getCount());
@@ -134,11 +197,15 @@ public final class ResenaDao_Impl implements ResenaDao {
             _tmpId = _cursor.getInt(_cursorIndexOfId);
             final int _tmpUserId;
             _tmpUserId = _cursor.getInt(_cursorIndexOfUserId);
+            final long _tmpPropiedadId;
+            _tmpPropiedadId = _cursor.getLong(_cursorIndexOfPropiedadId);
+            final int _tmpCalificacion;
+            _tmpCalificacion = _cursor.getInt(_cursorIndexOfCalificacion);
             final String _tmpComentario;
             _tmpComentario = _cursor.getString(_cursorIndexOfComentario);
             final long _tmpFechaCreacion;
             _tmpFechaCreacion = _cursor.getLong(_cursorIndexOfFechaCreacion);
-            _item = new ResenaEntidad(_tmpId,_tmpUserId,_tmpComentario,_tmpFechaCreacion);
+            _item = new ResenaEntidad(_tmpId,_tmpUserId,_tmpPropiedadId,_tmpCalificacion,_tmpComentario,_tmpFechaCreacion);
             _result.add(_item);
           }
           return _result;

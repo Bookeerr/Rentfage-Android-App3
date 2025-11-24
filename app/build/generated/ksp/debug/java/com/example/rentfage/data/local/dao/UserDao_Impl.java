@@ -9,6 +9,7 @@ import androidx.room.EntityDeletionOrUpdateAdapter;
 import androidx.room.EntityInsertionAdapter;
 import androidx.room.RoomDatabase;
 import androidx.room.RoomSQLiteQuery;
+import androidx.room.SharedSQLiteStatement;
 import androidx.room.util.CursorUtil;
 import androidx.room.util.DBUtil;
 import androidx.sqlite.db.SupportSQLiteStatement;
@@ -36,7 +37,11 @@ public final class UserDao_Impl implements UserDao {
 
   private final EntityInsertionAdapter<UserEntity> __insertionAdapterOfUserEntity;
 
+  private final EntityInsertionAdapter<UserEntity> __insertionAdapterOfUserEntity_1;
+
   private final EntityDeletionOrUpdateAdapter<UserEntity> __updateAdapterOfUserEntity;
+
+  private final SharedSQLiteStatement __preparedStmtOfBorrarTodos;
 
   public UserDao_Impl(@NonNull final RoomDatabase __db) {
     this.__db = __db;
@@ -45,6 +50,24 @@ public final class UserDao_Impl implements UserDao {
       @NonNull
       protected String createQuery() {
         return "INSERT OR ABORT INTO `users` (`id`,`name`,`email`,`phone`,`pass`,`role`) VALUES (nullif(?, 0),?,?,?,?,?)";
+      }
+
+      @Override
+      protected void bind(@NonNull final SupportSQLiteStatement statement,
+          @NonNull final UserEntity entity) {
+        statement.bindLong(1, entity.getId());
+        statement.bindString(2, entity.getName());
+        statement.bindString(3, entity.getEmail());
+        statement.bindString(4, entity.getPhone());
+        statement.bindString(5, entity.getPass());
+        statement.bindString(6, entity.getRole());
+      }
+    };
+    this.__insertionAdapterOfUserEntity_1 = new EntityInsertionAdapter<UserEntity>(__db) {
+      @Override
+      @NonNull
+      protected String createQuery() {
+        return "INSERT OR REPLACE INTO `users` (`id`,`name`,`email`,`phone`,`pass`,`role`) VALUES (nullif(?, 0),?,?,?,?,?)";
       }
 
       @Override
@@ -77,6 +100,14 @@ public final class UserDao_Impl implements UserDao {
         statement.bindLong(7, entity.getId());
       }
     };
+    this.__preparedStmtOfBorrarTodos = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "DELETE FROM users";
+        return _query;
+      }
+    };
   }
 
   @Override
@@ -90,6 +121,43 @@ public final class UserDao_Impl implements UserDao {
           final Long _result = __insertionAdapterOfUserEntity.insertAndReturnId(user);
           __db.setTransactionSuccessful();
           return _result;
+        } finally {
+          __db.endTransaction();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object upsert(final UserEntity user, final Continuation<? super Long> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Long>() {
+      @Override
+      @NonNull
+      public Long call() throws Exception {
+        __db.beginTransaction();
+        try {
+          final Long _result = __insertionAdapterOfUserEntity_1.insertAndReturnId(user);
+          __db.setTransactionSuccessful();
+          return _result;
+        } finally {
+          __db.endTransaction();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object insertarTodos(final List<UserEntity> users,
+      final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        __db.beginTransaction();
+        try {
+          __insertionAdapterOfUserEntity_1.insert(users);
+          __db.setTransactionSuccessful();
+          return Unit.INSTANCE;
         } finally {
           __db.endTransaction();
         }
@@ -116,11 +184,80 @@ public final class UserDao_Impl implements UserDao {
   }
 
   @Override
+  public Object borrarTodos(final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfBorrarTodos.acquire();
+        try {
+          __db.beginTransaction();
+          try {
+            _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return Unit.INSTANCE;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfBorrarTodos.release(_stmt);
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
   public Object getByEmail(final String email, final Continuation<? super UserEntity> $completion) {
     final String _sql = "SELECT * FROM users WHERE email = ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
     _statement.bindString(_argIndex, email);
+    final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
+    return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<UserEntity>() {
+      @Override
+      @Nullable
+      public UserEntity call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfName = CursorUtil.getColumnIndexOrThrow(_cursor, "name");
+          final int _cursorIndexOfEmail = CursorUtil.getColumnIndexOrThrow(_cursor, "email");
+          final int _cursorIndexOfPhone = CursorUtil.getColumnIndexOrThrow(_cursor, "phone");
+          final int _cursorIndexOfPass = CursorUtil.getColumnIndexOrThrow(_cursor, "pass");
+          final int _cursorIndexOfRole = CursorUtil.getColumnIndexOrThrow(_cursor, "role");
+          final UserEntity _result;
+          if (_cursor.moveToFirst()) {
+            final long _tmpId;
+            _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final String _tmpName;
+            _tmpName = _cursor.getString(_cursorIndexOfName);
+            final String _tmpEmail;
+            _tmpEmail = _cursor.getString(_cursorIndexOfEmail);
+            final String _tmpPhone;
+            _tmpPhone = _cursor.getString(_cursorIndexOfPhone);
+            final String _tmpPass;
+            _tmpPass = _cursor.getString(_cursorIndexOfPass);
+            final String _tmpRole;
+            _tmpRole = _cursor.getString(_cursorIndexOfRole);
+            _result = new UserEntity(_tmpId,_tmpName,_tmpEmail,_tmpPhone,_tmpPass,_tmpRole);
+          } else {
+            _result = null;
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+          _statement.release();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object getById(final long id, final Continuation<? super UserEntity> $completion) {
+    final String _sql = "SELECT * FROM users WHERE id = ? LIMIT 1";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
+    int _argIndex = 1;
+    _statement.bindLong(_argIndex, id);
     final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
     return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<UserEntity>() {
       @Override

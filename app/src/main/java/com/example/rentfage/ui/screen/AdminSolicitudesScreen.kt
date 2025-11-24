@@ -36,16 +36,12 @@ import com.example.rentfage.R
 import com.example.rentfage.data.local.entity.CasaEntity
 import com.example.rentfage.ui.viewmodel.EstadoSolicitud
 import com.example.rentfage.ui.viewmodel.HistorialViewModel
-import com.example.rentfage.ui.viewmodel.Solicitud
+import com.example.rentfage.ui.viewmodel.SolicitudUi
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun AdminSolicitudesScreen(historialViewModel: HistorialViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(Unit) {
-        historialViewModel.cargarTodasLasSolicitudes()
-    }
 
     LaunchedEffect(key1 = true) {
         historialViewModel.messageFlow.collectLatest { message ->
@@ -98,7 +94,7 @@ fun AdminSolicitudesScreen(historialViewModel: HistorialViewModel) {
 
 @Composable
 private fun AdminSolicitudCard(
-    solicitud: Solicitud,
+    solicitud: SolicitudUi,
     onAprobar: () -> Unit,
     onRechazar: () -> Unit
 ) {
@@ -114,11 +110,11 @@ private fun AdminSolicitudCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Usuario: ${solicitud.usuarioEmail}", style = MaterialTheme.typography.bodyMedium)
-            Text(text = "Propiedad: ${solicitud.casa.address}", style = MaterialTheme.typography.bodyMedium)
+            Text(text = "Propiedad: ${solicitud.casa?.address ?: "Propiedad desconocida"}", style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Fecha: ${solicitud.fecha}", style = MaterialTheme.typography.bodySmall)
             Text(text = "Estado: ${solicitud.estado.name}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-            
+
             if (solicitud.estado == EstadoSolicitud.Pendiente) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -140,9 +136,9 @@ private fun resourceUri(resourceId: Int): String {
 fun AdminSolicitudesScreenPreview() {
     val casaDeEjemplo = CasaEntity(id = 1, price = "UF 32.500", address = "Lo Barnechea, sector La Dehesa", details = "4 hab | 3 baños | 580 m²", imageUri = resourceUri(R.drawable.casa1), latitude = 0.0, longitude = 0.0, isFavorite = false)
     val solicitudesDeEjemplo = listOf(
-        Solicitud(1, "cliente1@test.com", casaDeEjemplo, "15/05/2024", EstadoSolicitud.Pendiente),
-        Solicitud(2, "cliente2@test.com", casaDeEjemplo, "14/05/2024", EstadoSolicitud.Aprobada),
-        Solicitud(3, "cliente3@test.com", casaDeEjemplo, "13/05/2024", EstadoSolicitud.Pendiente)
+        SolicitudUi(1, "cliente1@test.com", casaDeEjemplo, "15/05/2024", EstadoSolicitud.Pendiente),
+        SolicitudUi(2, "cliente2@test.com", casaDeEjemplo, "14/05/2024", EstadoSolicitud.Aprobada),
+        SolicitudUi(3, "cliente3@test.com", casaDeEjemplo, "13/05/2024", EstadoSolicitud.Pendiente)
     )
 
     Column(

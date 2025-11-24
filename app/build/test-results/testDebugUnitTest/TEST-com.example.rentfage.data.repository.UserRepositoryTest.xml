@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.rentfage.data.repository.UserRepositoryTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2025-11-23T03:10:47.472Z" hostname="FRAN" time="0.168">
+  <properties/>
+  <testcase name="register_falla_si_el_email_ya_existe" classname="com.example.rentfage.data.repository.UserRepositoryTest" time="0.095"/>
+  <testcase name="changePassword_falla_si_password_actual_es_incorrecta" classname="com.example.rentfage.data.repository.UserRepositoryTest" time="0.021"/>
+  <testcase name="login_retorna_fallo_si_usuario_no_existe" classname="com.example.rentfage.data.repository.UserRepositoryTest" time="0.007"/>
+  <testcase name="login_retorna_fallo_si_password_es_incorrecta" classname="com.example.rentfage.data.repository.UserRepositoryTest" time="0.006"/>
+  <testcase name="updateProfile_actualiza_datos_si_usuario_existe" classname="com.example.rentfage.data.repository.UserRepositoryTest" time="0.01"/>
+  <testcase name="changePassword_actualiza_password_si_credenciales_correctas" classname="com.example.rentfage.data.repository.UserRepositoryTest" time="0.009"/>
+  <testcase name="getUserByEmail_retorna_usuario_del_DAO" classname="com.example.rentfage.data.repository.UserRepositoryTest" time="0.004"/>
+  <testcase name="register_llama_al_DAO_para_insertar_usuario" classname="com.example.rentfage.data.repository.UserRepositoryTest" time="0.01"/>
+  <testcase name="login_retorna_usuario_si_credenciales_son_correctas" classname="com.example.rentfage.data.repository.UserRepositoryTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

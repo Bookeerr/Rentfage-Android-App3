@@ -1,37 +1,84 @@
 package com.example.rentfage.data.remote
 
-// Importamos las librerías necesarias para construir el cliente de red.
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.ConcurrentHashMap
 
-/**
- * Objeto singleton que se encarga de construir y proveer el cliente de Retrofit.
- * Centraliza la configuración de la conexión a la API.
- */
+
 object RemoteModule {
 
-    // La URL base del microservicio o API a la que nos conectaremos.
-    private const val BASE_URL = "https://jsonplaceholder.typicode.com/"
+    // IP mágica para que el emulador vea tu PC (localhost).
+    private const val DEFAULT_BASE_HOST = "http://10.0.2.2"
+    
+    // CORREGIDO: Añadimos el prefijo "/api/" para coincidir con la estructura estándar de microservicios.
+    private const val API_PREFIX = "/api/"
 
-    // Creamos un interceptor de logging que nos permitirá ver en el Logcat
-    // los detalles de las peticiones y respuestas de red. Muy útil para depurar.
+    @Volatile
+    private var baseHost: String = DEFAULT_BASE_HOST
+    
+    // Caché para no crear objetos Retrofit repetidos innecesariamente
+    private val retrofitCache = ConcurrentHashMap<Int, Retrofit>()
+
+    // Interceptor para loguear las peticiones/respuestas HTTP y facilitar la depuración.
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    // Construimos un cliente OkHttp personalizado, añadiendo el interceptor de logging.
+    // Cliente OkHttp compartido
     private val okHttp = OkHttpClient.Builder()
         .addInterceptor(logging)
         .build()
 
-    // Construimos la instancia principal de Retrofit.
-    private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl(BASE_URL) // 1. Le decimos cuál es la URL base.
-        .client(okHttp)      // 2. Le asignamos nuestro cliente OkHttp con logging.
-        .addConverterFactory(GsonConverterFactory.create()) // 3. Le decimos que use Gson para convertir JSON a objetos Kotlin.
-        .build()
+    // Genera la URL completa: http://10.0.2.2:PUERTO/api/
+    private fun microserviceUrl(port: Int): String {
+        val normalizedBase = baseHost.removeSuffix("/")
+        return "$normalizedBase:$port$API_PREFIX"
+    }
 
-    fun <T> create(service: Class<T>): T = retrofit.create(service)
+    private fun retrofitFor(port: Int): Retrofit =
+        retrofitCache.getOrPut(port) { buildRetrofit(microserviceUrl(port)) }
+
+    private fun buildRetrofit(baseUrl: String): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(okHttp)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    /**
+     * Permite actualizar la IP sin recompilar (útil si cambias de red).
+     */
+    fun updateBaseHost(newHost: String?): String {
+        val sanitized = newHost
+            ?.takeIf { it.isNotBlank() }
+            ?.trim()
+            ?.removeSuffix("/")
+            ?.let { host ->
+                if (host.startsWith("http://") || host.startsWith("https://")) host else "http://$host"
+            }
+            ?: DEFAULT_BASE_HOST
+
+        if (sanitized != baseHost) {
+            baseHost = sanitized
+            retrofitCache.clear()
+        }
+        return baseHost
+    }
+
+    // --- INSTANCIAS DE TUS 4 MICROSERVICIOS ---
+    // IMPORTANTE: Verifica que estos puertos coincidan con tu VS Code.
+
+    val usuariosApi: UsuariosApiService
+        get() = retrofitFor(8081).create(UsuariosApiService::class.java)
+
+    val casasApi: CasasApiService
+        get() = retrofitFor(8082).create(CasasApiService::class.java)
+
+    val resenasApi: ResenasApiService
+        get() = retrofitFor(8083).create(ResenasApiService::class.java)
+
+    val comprasApi: ComprasApiService
+        get() = retrofitFor(8084).create(ComprasApiService::class.java)
 }

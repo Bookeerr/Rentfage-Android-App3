@@ -1,98 +1,134 @@
 package com.example.rentfage.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.rentfage.data.local.entity.CasaEntity
+import com.example.rentfage.data.repository.CasasRepository
+import com.example.rentfage.data.repository.ComprasRepository
+import com.example.rentfage.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 enum class EstadoSolicitud { Pendiente, Aprobada, Rechazada }
 
-data class Solicitud(
+data class SolicitudUi(
     val id: Int,
     val usuarioEmail: String,
-    val casa: CasaEntity,
+    val casa: CasaEntity?,
     val fecha: String,
-    var estado: EstadoSolicitud
+    val estado: EstadoSolicitud
 )
 
 data class HistorialUiState(
-    val solicitudes: List<Solicitud> = emptyList()
+    val solicitudes: List<SolicitudUi> = emptyList(),
+    val isLoading: Boolean = false
 )
 
-class HistorialViewModel : ViewModel() {
+class HistorialViewModel(
+    private val comprasRepository: ComprasRepository,
+    private val casasRepository: CasasRepository,
+    private val userRepository: UserRepository
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(HistorialUiState())
+    private val _uiState = MutableStateFlow(HistorialUiState(isLoading = true))
     val uiState: StateFlow<HistorialUiState> = _uiState.asStateFlow()
 
     private val _messageFlow = MutableSharedFlow<String>()
     val messageFlow: SharedFlow<String> = _messageFlow.asSharedFlow()
 
-    // Ya no es un companion object. Cada ViewModel tiene su propia lista.
-    private val solicitudesEnMemoria = mutableListOf<Solicitud>()
+    init {
+        observarSolicitudes()
+    }
+
+    private fun observarSolicitudes() {
+        val currentUserEmail = AuthViewModel.activeUserEmail
+        val isAdmin = currentUserEmail == "admin@rent.cl"
+
+        val flujoSolicitudes = when {
+            isAdmin -> comprasRepository.todasLasSolicitudes
+            currentUserEmail != null -> comprasRepository.historialDeUsuario(currentUserEmail)
+            else -> null
+        }
+
+        if (flujoSolicitudes == null) {
+            _uiState.update { it.copy(solicitudes = emptyList(), isLoading = false) }
+            return
+        }
+
+        combine(flujoSolicitudes, casasRepository.todasLasCasas) { solicitudes, casas ->
+            solicitudes.map { solicitud ->
+                val casaDetalle = casas.find { it.id == solicitud.casaId }
+                SolicitudUi(
+                    id = solicitud.id,
+                    usuarioEmail = solicitud.usuarioEmail,
+                    casa = casaDetalle,
+                    fecha = solicitud.fecha,
+                    estado = runCatching { EstadoSolicitud.valueOf(solicitud.estado) }
+                        .getOrElse { EstadoSolicitud.Pendiente }
+                )
+            }
+        }
+            .onEach { lista ->
+                _uiState.update { it.copy(solicitudes = lista, isLoading = false) }
+            }
+            .launchIn(viewModelScope)
+
+        viewModelScope.launch {
+            if (isAdmin) {
+                comprasRepository.sincronizarTodas()
+            } else if (currentUserEmail != null) {
+                val usuario = userRepository.getUserByEmail(currentUserEmail)
+                val userId = usuario?.id ?: 0L
+                comprasRepository.sincronizarSolicitudes(currentUserEmail, userId)
+            }
+        }
+    }
 
     fun addSolicitud(casa: CasaEntity) {
         val currentUserEmail = AuthViewModel.activeUserEmail ?: return
-        
-        val newId = (solicitudesEnMemoria.maxOfOrNull { it.id } ?: 0) + 1
-        val fechaActual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
 
-        val nuevaSolicitud = Solicitud(
-            id = newId,
-            usuarioEmail = currentUserEmail,
-            casa = casa,
-            fecha = fechaActual,
-            estado = EstadoSolicitud.Pendiente
-        )
-
-        solicitudesEnMemoria.add(nuevaSolicitud)
-        cargarSolicitudesDeUsuario() // Actualiza la UI para el usuario actual
-    }
-
-    fun cargarSolicitudesDeUsuario() {
-        val currentUserEmail = AuthViewModel.activeUserEmail
-        _uiState.update {
-            val solicitudesFiltradas = if (currentUserEmail != null) {
-                solicitudesEnMemoria.filter { s -> s.usuarioEmail == currentUserEmail }
-            } else {
-                emptyList()
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val user = userRepository.getUserByEmail(currentUserEmail)
+            val userId = user?.id ?: 0L
+            comprasRepository.enviarSolicitud(
+                userId = userId,
+                casaId = casa.id.toLong(),
+                userEmail = currentUserEmail
+            ).onSuccess {
+                _messageFlow.emit("Solicitud enviada con éxito")
+            }.onFailure {
+                _messageFlow.emit("Error al enviar solicitud: ${it.message}")
             }
-            it.copy(solicitudes = solicitudesFiltradas)
+            _uiState.update { it.copy(isLoading = false) }
         }
-    }
-
-    // --- Funciones de Admin ---
-
-    fun cargarTodasLasSolicitudes() {
-        _uiState.update { it.copy(solicitudes = solicitudesEnMemoria) }
     }
 
     fun aprobarSolicitud(solicitudId: Int) {
-        solicitudesEnMemoria.find { it.id == solicitudId }?.let {
-            it.estado = EstadoSolicitud.Aprobada
-            cargarTodasLasSolicitudes() // Recargamos para que el admin vea el cambio
-            viewModelScope.launch {
-                _messageFlow.emit("Solicitud #${it.id} aprobada con éxito")
-            }
-        }
+        actualizarEstado(solicitudId, "Aprobada")
     }
 
     fun rechazarSolicitud(solicitudId: Int) {
-        solicitudesEnMemoria.find { it.id == solicitudId }?.let {
-            it.estado = EstadoSolicitud.Rechazada
-            cargarTodasLasSolicitudes()
-            viewModelScope.launch {
-                _messageFlow.emit("Solicitud #${it.id} rechazada")
-            }
+        actualizarEstado(solicitudId, "Rechazada")
+    }
+
+    private fun actualizarEstado(id: Int, nuevoEstado: String) {
+        viewModelScope.launch {
+            comprasRepository.actualizarEstado(id.toLong(), nuevoEstado)
+                .onSuccess { _messageFlow.emit("Solicitud $nuevoEstado") }
+                .onFailure { _messageFlow.emit("Error al actualizar: ${it.message}") }
         }
     }
 }

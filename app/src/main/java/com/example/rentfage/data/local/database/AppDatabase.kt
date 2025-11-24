@@ -7,23 +7,26 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.rentfage.data.local.dao.CasaDao
 import com.example.rentfage.data.local.dao.ResenaDao
+import com.example.rentfage.data.local.dao.SolicitudDao
 import com.example.rentfage.data.local.dao.UserDao
 import com.example.rentfage.data.local.entity.CasaEntity
 import com.example.rentfage.data.local.entity.ResenaEntidad
+import com.example.rentfage.data.local.entity.SolicitudEntity
 import com.example.rentfage.data.local.entity.UserEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [UserEntity::class, CasaEntity::class, ResenaEntidad::class], // Añadimos ResenaEntidad
-    version = 6,  // Subimos la versión
+    entities = [UserEntity::class, CasaEntity::class, ResenaEntidad::class, SolicitudEntity::class],
+    version = 8,
     exportSchema = true
 )
 abstract class AppDatabase: RoomDatabase(){
     abstract fun userDao(): UserDao
     abstract fun casaDao(): CasaDao
-    abstract fun resenaDao(): ResenaDao // Añadimos el nuevo DAO
+    abstract fun resenaDao(): ResenaDao
+    abstract fun solicitudDao(): SolicitudDao
 
     companion object{
         @Volatile
@@ -42,7 +45,7 @@ abstract class AppDatabase: RoomDatabase(){
                             super.onOpen(db)
                             CoroutineScope(Dispatchers.IO).launch {
                                 val userDao = getInstance(context).userDao()
-                                
+
                                 // ADMIN
                                 val existingAdmin = userDao.getByEmail("admin@rent.cl")
                                 if (existingAdmin != null) {

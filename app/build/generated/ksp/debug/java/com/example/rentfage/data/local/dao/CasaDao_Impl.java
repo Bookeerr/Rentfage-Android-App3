@@ -402,6 +402,32 @@ public final class CasaDao_Impl implements CasaDao {
     }, $completion);
   }
 
+  @Override
+  public Object obtenerIdsFavoritos(final Continuation<? super List<Integer>> $completion) {
+    final String _sql = "SELECT id FROM casas WHERE isFavorite = 1";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
+    return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<List<Integer>>() {
+      @Override
+      @NonNull
+      public List<Integer> call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final List<Integer> _result = new ArrayList<Integer>(_cursor.getCount());
+          while (_cursor.moveToNext()) {
+            final Integer _item;
+            _item = _cursor.getInt(0);
+            _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+          _statement.release();
+        }
+      }
+    }, $completion);
+  }
+
   @NonNull
   public static List<Class<?>> getRequiredConverters() {
     return Collections.emptyList();

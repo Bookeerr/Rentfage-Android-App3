@@ -15,6 +15,8 @@ import com.example.rentfage.data.local.dao.CasaDao;
 import com.example.rentfage.data.local.dao.CasaDao_Impl;
 import com.example.rentfage.data.local.dao.ResenaDao;
 import com.example.rentfage.data.local.dao.ResenaDao_Impl;
+import com.example.rentfage.data.local.dao.SolicitudDao;
+import com.example.rentfage.data.local.dao.SolicitudDao_Impl;
 import com.example.rentfage.data.local.dao.UserDao;
 import com.example.rentfage.data.local.dao.UserDao_Impl;
 import java.lang.Class;
@@ -38,17 +40,20 @@ public final class AppDatabase_Impl extends AppDatabase {
 
   private volatile ResenaDao _resenaDao;
 
+  private volatile SolicitudDao _solicitudDao;
+
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(6) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(8) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `users` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `email` TEXT NOT NULL, `phone` TEXT NOT NULL, `pass` TEXT NOT NULL, `role` TEXT NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `casas` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `price` TEXT NOT NULL, `address` TEXT NOT NULL, `details` TEXT NOT NULL, `imageUri` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `isFavorite` INTEGER NOT NULL)");
-        db.execSQL("CREATE TABLE IF NOT EXISTS `resenas` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `comentario` TEXT NOT NULL, `fechaCreacion` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `resenas` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `propiedadId` INTEGER NOT NULL, `calificacion` INTEGER NOT NULL, `comentario` TEXT NOT NULL, `fechaCreacion` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `solicitudes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `usuarioId` INTEGER NOT NULL, `usuarioEmail` TEXT NOT NULL, `casaId` INTEGER NOT NULL, `fecha` TEXT NOT NULL, `estado` TEXT NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4ebec72fc9f8a08fd0b586ae813bbf41')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1f5ebc149d7d655c844d30edcce65626')");
       }
 
       @Override
@@ -56,6 +61,7 @@ public final class AppDatabase_Impl extends AppDatabase {
         db.execSQL("DROP TABLE IF EXISTS `users`");
         db.execSQL("DROP TABLE IF EXISTS `casas`");
         db.execSQL("DROP TABLE IF EXISTS `resenas`");
+        db.execSQL("DROP TABLE IF EXISTS `solicitudes`");
         final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
         if (_callbacks != null) {
           for (RoomDatabase.Callback _callback : _callbacks) {
@@ -133,9 +139,11 @@ public final class AppDatabase_Impl extends AppDatabase {
                   + " Expected:\n" + _infoCasas + "\n"
                   + " Found:\n" + _existingCasas);
         }
-        final HashMap<String, TableInfo.Column> _columnsResenas = new HashMap<String, TableInfo.Column>(4);
+        final HashMap<String, TableInfo.Column> _columnsResenas = new HashMap<String, TableInfo.Column>(6);
         _columnsResenas.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsResenas.put("userId", new TableInfo.Column("userId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsResenas.put("propiedadId", new TableInfo.Column("propiedadId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsResenas.put("calificacion", new TableInfo.Column("calificacion", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsResenas.put("comentario", new TableInfo.Column("comentario", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsResenas.put("fechaCreacion", new TableInfo.Column("fechaCreacion", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysResenas = new HashSet<TableInfo.ForeignKey>(0);
@@ -147,9 +155,25 @@ public final class AppDatabase_Impl extends AppDatabase {
                   + " Expected:\n" + _infoResenas + "\n"
                   + " Found:\n" + _existingResenas);
         }
+        final HashMap<String, TableInfo.Column> _columnsSolicitudes = new HashMap<String, TableInfo.Column>(6);
+        _columnsSolicitudes.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSolicitudes.put("usuarioId", new TableInfo.Column("usuarioId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSolicitudes.put("usuarioEmail", new TableInfo.Column("usuarioEmail", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSolicitudes.put("casaId", new TableInfo.Column("casaId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSolicitudes.put("fecha", new TableInfo.Column("fecha", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSolicitudes.put("estado", new TableInfo.Column("estado", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysSolicitudes = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesSolicitudes = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoSolicitudes = new TableInfo("solicitudes", _columnsSolicitudes, _foreignKeysSolicitudes, _indicesSolicitudes);
+        final TableInfo _existingSolicitudes = TableInfo.read(db, "solicitudes");
+        if (!_infoSolicitudes.equals(_existingSolicitudes)) {
+          return new RoomOpenHelper.ValidationResult(false, "solicitudes(com.example.rentfage.data.local.entity.SolicitudEntity).\n"
+                  + " Expected:\n" + _infoSolicitudes + "\n"
+                  + " Found:\n" + _existingSolicitudes);
+        }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "4ebec72fc9f8a08fd0b586ae813bbf41", "d1fb6da2a20b96ef32d2105ba0a9991d");
+    }, "1f5ebc149d7d655c844d30edcce65626", "207f3e1bab8e09a170da8dad5d76e527");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -160,7 +184,7 @@ public final class AppDatabase_Impl extends AppDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "users","casas","resenas");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "users","casas","resenas","solicitudes");
   }
 
   @Override
@@ -172,6 +196,7 @@ public final class AppDatabase_Impl extends AppDatabase {
       _db.execSQL("DELETE FROM `users`");
       _db.execSQL("DELETE FROM `casas`");
       _db.execSQL("DELETE FROM `resenas`");
+      _db.execSQL("DELETE FROM `solicitudes`");
       super.setTransactionSuccessful();
     } finally {
       super.endTransaction();
@@ -189,6 +214,7 @@ public final class AppDatabase_Impl extends AppDatabase {
     _typeConvertersMap.put(UserDao.class, UserDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(CasaDao.class, CasaDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(ResenaDao.class, ResenaDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(SolicitudDao.class, SolicitudDao_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -245,6 +271,20 @@ public final class AppDatabase_Impl extends AppDatabase {
           _resenaDao = new ResenaDao_Impl(this);
         }
         return _resenaDao;
+      }
+    }
+  }
+
+  @Override
+  public SolicitudDao solicitudDao() {
+    if (_solicitudDao != null) {
+      return _solicitudDao;
+    } else {
+      synchronized(this) {
+        if(_solicitudDao == null) {
+          _solicitudDao = new SolicitudDao_Impl(this);
+        }
+        return _solicitudDao;
       }
     }
   }

@@ -3,8 +3,6 @@ package com.example.rentfage.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
@@ -27,6 +25,7 @@ import androidx.navigation.navArgument
 import com.example.rentfage.data.local.database.AppDatabase
 import com.example.rentfage.data.local.storage.UserPreferences
 import com.example.rentfage.data.repository.CasasRepository
+import com.example.rentfage.data.repository.ComprasRepository
 import com.example.rentfage.data.repository.ResenaRepositorio
 import com.example.rentfage.data.repository.UserRepository
 import com.example.rentfage.ui.components.AppDrawer
@@ -55,16 +54,23 @@ fun AppNavGraph(navController: NavHostController) {
     val database = remember { AppDatabase.getInstance(context) }
     val casasRepository = remember { CasasRepository(database.casaDao()) }
     val userRepository = remember { UserRepository(database.userDao()) }
-    val resenaRepository = remember { ResenaRepositorio(database.resenaDao()) } 
+    val resenaRepository = remember { ResenaRepositorio(database.resenaDao()) }
+    // CORREGIDO: Pasamos los dos DAOs que necesita el ComprasRepository
+    val comprasRepository = remember { ComprasRepository(database.solicitudDao(), database.userDao()) }
 
     // ViewModels
     val perfilViewModel: PerfilViewModel = viewModel(factory = PerfilViewModelFactory(userRepository))
-    val historialViewModel: HistorialViewModel = viewModel()
+    
+    // Usamos la Factory para construir el HistorialViewModel con sus 3 dependencias
+    val historialViewModel: HistorialViewModel = viewModel(
+        factory = HistorialViewModelFactory(comprasRepository, casasRepository, userRepository)
+    )
+    
     val casasViewModel: CasasViewModel = viewModel(factory = CasasViewModelFactory(casasRepository))
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(userRepository))
     val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(application, userRepository))
     val resenaViewModel: ResenaViewModel = viewModel(factory = ResenaViewModelFactory(resenaRepository))
-    val adminResenaViewModel: AdminResenaViewModel = viewModel(factory = AdminResenaViewModelFactory(resenaRepository)) // Nuevo ViewModel
+    val adminResenaViewModel: AdminResenaViewModel = viewModel(factory = AdminResenaViewModelFactory(resenaRepository)) 
 
     val showTopBar = currentRoute != "login" && currentRoute != "register"
 
@@ -83,7 +89,7 @@ fun AppNavGraph(navController: NavHostController) {
     val goAdminPropertyList: () -> Unit = { navController.navigate("admin_property_list") }
     val goAdminSolicitudes: () -> Unit = { navController.navigate("admin_solicitudes") }
     val goAdminUserList: () -> Unit = { navController.navigate("admin_user_list") } 
-    val goAdminResenas: () -> Unit = { navController.navigate("admin_resenas") } // Nueva Acción
+    val goAdminResenas: () -> Unit = { navController.navigate("admin_resenas") } 
     val onHouseClick: (Int) -> Unit = { casaId -> navController.navigate("detalle_casa/$casaId") }
     val onNavigateBack: () -> Unit = { navController.popBackStack() }
     val goAddEditProperty: (Int?) -> Unit = { casaId ->
@@ -145,7 +151,7 @@ fun AppNavGraph(navController: NavHostController) {
                         onGoToPropertyList = goAdminPropertyList,
                         onGoToSolicitudes = goAdminSolicitudes,
                         onGoToUserList = goAdminUserList,
-                        onGoToResenas = goAdminResenas // Conectamos la acción
+                        onGoToResenas = goAdminResenas 
                     )
                 }
                 composable("admin_property_list") {
@@ -153,7 +159,7 @@ fun AppNavGraph(navController: NavHostController) {
                 }
                 composable("admin_solicitudes") { AdminSolicitudesScreen(historialViewModel = historialViewModel) }
                 composable("admin_user_list") { AdminUsuario(userViewModel = userViewModel) }
-                composable("admin_resenas") { // Nueva ruta
+                composable("admin_resenas") { 
                     AdminResenaScreen(adminResenaViewModel = adminResenaViewModel)
                 }
                 composable("add_edit_property/{casaId}", arguments = listOf(navArgument("casaId") { type = NavType.IntType; defaultValue = -1 })) {

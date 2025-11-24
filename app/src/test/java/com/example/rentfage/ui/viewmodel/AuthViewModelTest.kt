@@ -34,7 +34,7 @@ class AuthViewModelTest {
         viewModel = AuthViewModel(application, repository, userPreferences)
     }
 
-    // --- TEST ESTADO INICIAL ---
+    //  TEST ESTADO INICIAL
     @Test
     fun al_iniciar_el_formulario_login_esta_vacio() {
         val estado = viewModel.login.value

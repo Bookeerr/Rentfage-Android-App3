@@ -12,10 +12,16 @@ interface ResenaDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertar(resena: ResenaEntidad)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertarTodas(resenas: List<ResenaEntidad>)
+
     @Query("SELECT * FROM resenas WHERE userId = :userId ORDER BY fechaCreacion DESC LIMIT 1")
     suspend fun obtenerResenaPorUserId(userId: Int): ResenaEntidad?
 
     // Nuevo método para el admin
     @Query("SELECT * FROM resenas ORDER BY fechaCreacion DESC")
     fun obtenerTodas(): Flow<List<ResenaEntidad>>
+
+    @Query("DELETE FROM resenas")
+    suspend fun borrarTodas()
 }

@@ -14,12 +14,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+// --- ESTADO PARA LA LISTA DE CASAS ---
 data class CasasUiState(
-    val casas: List<CasaEntity> = emptyList()
+    val casas: List<CasaEntity> = emptyList(),
+    val casasFavoritas: List<CasaEntity> = emptyList()
 )
 
-// Estado para la pantalla de añadir/editar propiedad.
-data class AddEditPropertyUiState(
+// --- ESTADO PARA EL FORMULARIO DE AÑADIR/EDITAR ---
+data class AddEditCasaState(
     val address: String = "",
     val price: String = "",
     val details: String = "",
@@ -31,124 +33,140 @@ data class AddEditPropertyUiState(
     val saveSuccess: Boolean = false
 )
 
-class CasasViewModel(private val repository: CasasRepository) : ViewModel() {
+class CasasViewModel(private val casasRepository: CasasRepository) : ViewModel() {
 
-    // --- ESTADOS DE UI ---
-    val uiState: StateFlow<CasasUiState> = repository.todasLasCasas
-        .map { casasList -> CasasUiState(casas = casasList) }
-        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = CasasUiState()) // CAMBIADO A Eagerly
+    // --- LÓGICA PARA LA LISTA DE CASAS (EXISTENTE) ---
+    val uiState: StateFlow<CasasUiState> = casasRepository.todasLasCasas.map { casas ->
+        CasasUiState(casas = casas)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = CasasUiState()
+    )
 
-    val favoritasUiState: StateFlow<CasasUiState> = repository.casasFavoritas
-        .map { casasList -> CasasUiState(casas = casasList) }
-        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = CasasUiState()) // CAMBIADO A Eagerly
+    val casasFavoritas: StateFlow<List<CasaEntity>> = casasRepository.casasFavoritas
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
-    private val _addEditState = MutableStateFlow(AddEditPropertyUiState())
-    val addEditState: StateFlow<AddEditPropertyUiState> = _addEditState.asStateFlow()
+    init {
+        sincronizar()
+    }
 
-    // --- FUNCIONES DE USUARIO ---
+    private fun sincronizar() {
+        viewModelScope.launch {
+            casasRepository.sincronizarCasas()
+        }
+    }
+
     fun toggleFavorite(casa: CasaEntity) {
         viewModelScope.launch {
-            val casaActualizada = casa.copy(isFavorite = !casa.isFavorite)
-            repository.actualizarCasa(casaActualizada)
+            val updatedCasa = casa.copy(isFavorite = !casa.isFavorite)
+            casasRepository.actualizarCasa(updatedCasa)
         }
     }
 
     fun getCasaById(id: Int): StateFlow<CasaEntity?> {
-        return repository.getById(id)
-            .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5_000), initialValue = null)
+        return casasRepository.getById(id)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = null
+            )
     }
 
-    // --- FUNCIONES DE ADMINISTRADOR ---
+    // --- LÓGICA PARA AÑADIR/EDITAR ---
 
-    fun deleteCasa(casa: CasaEntity) {
+    private val _addEditState = MutableStateFlow(AddEditCasaState())
+    val addEditState: StateFlow<AddEditCasaState> = _addEditState.asStateFlow()
+
+    fun loadCasaForEditingById(casaId: Int) {
         viewModelScope.launch {
-            repository.borrarCasa(casa)
+            val casa = casasRepository.getById(casaId).firstOrNull()
+            if (casa != null) {
+                _addEditState.update {
+                    it.copy(
+                        address = casa.address,
+                        price = casa.price.filter { char -> char.isDigit() },
+                        details = casa.details,
+                        latitude = casa.latitude.toString(),
+                        longitude = casa.longitude.toString(),
+                        imageUri = casa.imageUri,
+                        canSubmit = true
+                    )
+                }
+            }
         }
     }
 
-    fun saveProperty(casaId: Int?) {
-        if (!_addEditState.value.canSubmit) return
+    fun onAddressChange(newAddress: String) {
+        _addEditState.update { it.copy(address = newAddress, canSubmit = canSubmit()) }
+    }
+    fun onPriceChange(newPrice: String) {
+        _addEditState.update { it.copy(price = newPrice, canSubmit = canSubmit()) }
+    }
+    fun onDetailsChange(newDetails: String) {
+        _addEditState.update { it.copy(details = newDetails, canSubmit = canSubmit()) }
+    }
+    fun onLatitudeChange(newLat: String) {
+        _addEditState.update { it.copy(latitude = newLat, canSubmit = canSubmit()) }
+    }
+    fun onLongitudeChange(newLon: String) {
+        _addEditState.update { it.copy(longitude = newLon, canSubmit = canSubmit()) }
+    }
+    fun onImageUriChange(newUri: String?) {
+        _addEditState.update { it.copy(imageUri = newUri, canSubmit = canSubmit()) }
+    }
 
+    fun saveProperty(id: Int?) {
         viewModelScope.launch {
             _addEditState.update { it.copy(isSaving = true) }
 
-            val s = _addEditState.value
-            val casaEntity = CasaEntity(
-                id = casaId ?: 0, // Room se encarga si es 0
-                address = s.address,
-                price = "$${s.price} CLP", // Añadimos formato al guardar
-                details = s.details,
-                imageUri = s.imageUri!!,
-                latitude = s.latitude.toDoubleOrNull() ?: 0.0,
-                longitude = s.longitude.toDoubleOrNull() ?: 0.0
+            val state = _addEditState.value
+            val cleanedPrice = state.price.filter { it.isDigit() }
+
+            val casa = CasaEntity(
+                id = id ?: 0,
+                address = state.address,
+                price = "S/ $cleanedPrice",
+                details = state.details,
+                latitude = state.latitude.toDoubleOrNull() ?: 0.0,
+                longitude = state.longitude.toDoubleOrNull() ?: 0.0,
+                imageUri = state.imageUri ?: ""
             )
 
-            if (casaId == null) {
-                repository.insertarCasa(casaEntity.copy(id = 0)) // Asegurarse de que el ID es 0 para autogenerar
+            if (id == null) {
+                casasRepository.insertarCasa(casa)
             } else {
-                repository.actualizarCasa(casaEntity)
+                casasRepository.actualizarCasa(casa)
             }
 
+            sincronizar()
             _addEditState.update { it.copy(isSaving = false, saveSuccess = true) }
         }
     }
 
-    //  MANEJO DEL FORMULARIO DE AÑADIR/EDITAR
-
-    private fun populateFormFromEntity(casa: CasaEntity) {
-        _addEditState.update {
-            it.copy(
-                address = casa.address,
-                price = casa.price.replace("$", "").replace(" CLP", ""), // Limpiamos el formato para editar
-                details = casa.details,
-                latitude = casa.latitude.toString(),
-                longitude = casa.longitude.toString(),
-                imageUri = casa.imageUri
-            )
-        }
-    }
-
-    suspend fun loadCasaForEditingById(id: Int) {
-        val casa = repository.getById(id).firstOrNull()
-        if (casa != null) {
-            populateFormFromEntity(casa)
-        }
-    }
-
     fun resetAddEditState() {
-        _addEditState.value = AddEditPropertyUiState()
+        _addEditState.value = AddEditCasaState()
+    }
+    
+    private fun canSubmit(): Boolean {
+        val state = _addEditState.value
+        return state.address.isNotBlank() && 
+               state.price.isNotBlank() && 
+               state.details.isNotBlank() && 
+               state.latitude.isNotBlank() && 
+               state.longitude.isNotBlank()
     }
 
-    fun onAddressChange(value: String) { _addEditState.update { it.copy(address = value) }; recomputeCanSubmit() }
-    fun onPriceChange(value: String) {
-        // Solo aceptar números y limitar la longitud a 10 dígitos
-        val digitsOnly = value.filter { it.isDigit() }
-        if (digitsOnly.length <= 10) {
-            _addEditState.update { it.copy(price = digitsOnly) }
+    // --- FUNCIÓN DE BORRADO (CORREGIDO) ---
+    fun deleteCasa(casa: CasaEntity) {
+        viewModelScope.launch {
+            casasRepository.borrarCasa(casa)
+            // Opcional: Sincronizar después de borrar para reflejar en el servidor si fuera necesario
+            sincronizar()
         }
-        recomputeCanSubmit()
-    }
-    fun onDetailsChange(value: String) { _addEditState.update { it.copy(details = value) }; recomputeCanSubmit() }
-    fun onLatitudeChange(value: String) {
-        // Limitar a 10 caracteres
-        if (value.length <= 10) {
-            _addEditState.update { it.copy(latitude = value) }
-        }
-        recomputeCanSubmit()
-    }
-    fun onLongitudeChange(value: String) {
-        // Limitar a 10 caracteres
-        if (value.length <= 10) {
-            _addEditState.update { it.copy(longitude = value) }
-        }
-        recomputeCanSubmit()
-    }
-    fun onImageUriChange(uri: String?) { _addEditState.update { it.copy(imageUri = uri) }; recomputeCanSubmit() }
-
-    private fun recomputeCanSubmit() {
-        val s = _addEditState.value
-        val canSubmit = s.address.isNotBlank() && s.price.isNotBlank() && s.details.isNotBlank() &&
-                s.latitude.isNotBlank() && s.longitude.isNotBlank() && s.imageUri != null
-        _addEditState.update { it.copy(canSubmit = canSubmit) }
     }
 }

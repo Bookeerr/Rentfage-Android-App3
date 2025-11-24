@@ -26,6 +26,9 @@ interface CasaDao {
     @Query("SELECT COUNT(*) FROM casas")
     suspend fun count(): Int
 
+    @Query("SELECT id FROM casas WHERE isFavorite = 1")
+    suspend fun obtenerIdsFavoritos(): List<Int>
+
     // --- ESCRITURA ---
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertar(casa: CasaEntity)
@@ -42,3 +45,4 @@ interface CasaDao {
     @Query("DELETE FROM casas")
     suspend fun borrarTodas()
 }
+
