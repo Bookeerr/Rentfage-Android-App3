@@ -6,35 +6,41 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.ConcurrentHashMap
 
-
 object RemoteModule {
 
-    // IP mágica para que el emulador vea tu PC (localhost).
-    private const val DEFAULT_BASE_HOST = "http://10.0.2.2"
+    // --- CONFIGURACIÓN DE URL ---
+    private const val DEFAULT_BASE_HOST = "https://922kt3d4-XXXX.brs.devtunnels.ms"
     
-    // CORREGIDO: Añadimos el prefijo "/api/" para coincidir con la estructura estándar de microservicios.
-    private const val API_PREFIX = "/api/"
+    // Si quieres volver a usar el emulador con localhost, cambia la línea de arriba por:
+    // private const val DEFAULT_BASE_HOST = "http://10.0.2.2"
+
+    // CORRECCIÓN RÁPIDA: Quitamos el prefijo /api/ para que coincida con tu microservicio.
+    private const val API_PREFIX = "/"
 
     @Volatile
     private var baseHost: String = DEFAULT_BASE_HOST
     
-    // Caché para no crear objetos Retrofit repetidos innecesariamente
     private val retrofitCache = ConcurrentHashMap<Int, Retrofit>()
 
-    // Interceptor para loguear las peticiones/respuestas HTTP y facilitar la depuración.
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    // Cliente OkHttp compartido
     private val okHttp = OkHttpClient.Builder()
         .addInterceptor(logging)
         .build()
 
-    // Genera la URL completa: http://10.0.2.2:PUERTO/api/
+    // FUNCIÓN MEJORADA: Ahora sabe construir URLs para IP local y para Dev Tunnels.
     private fun microserviceUrl(port: Int): String {
         val normalizedBase = baseHost.removeSuffix("/")
-        return "$normalizedBase:$port$API_PREFIX"
+        
+        return if (normalizedBase.contains("XXXX")) {
+            // Lógica para Dev Tunnels: reemplaza XXXX por el puerto
+            normalizedBase.replace("XXXX", port.toString()) + API_PREFIX
+        } else {
+            // Lógica para IP local: añade el puerto al final
+            "$normalizedBase:$port$API_PREFIX"
+        }
     }
 
     private fun retrofitFor(port: Int): Retrofit =
@@ -47,9 +53,6 @@ object RemoteModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-    /**
-     * Permite actualizar la IP sin recompilar (útil si cambias de red).
-     */
     fun updateBaseHost(newHost: String?): String {
         val sanitized = newHost
             ?.takeIf { it.isNotBlank() }
@@ -68,7 +71,6 @@ object RemoteModule {
     }
 
     // --- INSTANCIAS DE TUS 4 MICROSERVICIOS ---
-    // IMPORTANTE: Verifica que estos puertos coincidan con tu VS Code.
 
     val usuariosApi: UsuariosApiService
         get() = retrofitFor(8081).create(UsuariosApiService::class.java)

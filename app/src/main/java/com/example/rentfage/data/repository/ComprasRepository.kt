@@ -49,16 +49,24 @@ class ComprasRepository(
             }
         }
 
+    // CORREGIDO: Lógica más simple y directa para crear una solicitud
     suspend fun enviarSolicitud(
         userId: Long,
         casaId: Long,
         userEmail: String
-    ): Result<Unit> =
-        runCatching {
-            val response = comprasApi.crearCompra(userId, casaId)
-            if (!response.isSuccessful) throw HttpException(response)
-            sincronizarSolicitudes(userEmail, userId)
+    ): Result<Unit> = runCatching {
+        // 1. Enviamos la solicitud para crear la compra.
+        // Usaremos `crearCompraDetalle` si el backend lo soporta, ya que es más robusto.
+        // Si no, `crearCompra` con IDs también sirve.
+        val response = comprasApi.crearCompra(userId, casaId)
+        if (!response.isSuccessful) {
+            throw HttpException(response)
         }
+
+        // 2. Después de crear, refrescamos la lista COMPLETA desde el servidor.
+        // Esto asegura que vemos la nueva solicitud y cualquier cambio de estado.
+        sincronizarSolicitudes(userEmail, userId).getOrThrow()
+    }
 
     suspend fun actualizarEstado(idCompra: Long, nuevoEstado: String): Result<Unit> =
         runCatching {
@@ -67,4 +75,3 @@ class ComprasRepository(
             solicitudDao.actualizarEstado(idCompra.toInt(), nuevoEstado)
         }
 }
-

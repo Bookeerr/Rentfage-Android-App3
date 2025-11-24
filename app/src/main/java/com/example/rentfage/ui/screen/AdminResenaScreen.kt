@@ -31,7 +31,8 @@ import java.util.Locale
 
 @Composable
 fun AdminResenaScreen(adminResenaViewModel: AdminResenaViewModel) {
-    val uiState by adminResenaViewModel.uiState.collectAsState()
+    // CORRECCIÓN 1: Apuntamos al StateFlow correcto `todasLasResenas`
+    val resenas by adminResenaViewModel.todasLasResenas.collectAsState()
 
     Scaffold { paddingValues ->
         Column(
@@ -47,7 +48,8 @@ fun AdminResenaScreen(adminResenaViewModel: AdminResenaViewModel) {
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            if (uiState.resenas.isEmpty()) {
+            // CORRECCIÓN 2: Usamos la nueva lista directamente
+            if (resenas.isEmpty()) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
@@ -64,7 +66,8 @@ fun AdminResenaScreen(adminResenaViewModel: AdminResenaViewModel) {
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(bottom = 16.dp)
                 ) {
-                    items(uiState.resenas) { resena ->
+                    // CORRECCIÓN 3: Iteramos sobre la nueva lista
+                    items(resenas) { resena ->
                         ResenaItemCard(resena)
                     }
                 }

@@ -25,10 +25,10 @@ interface SolicitudDao {
     @Query("UPDATE solicitudes SET estado = :nuevoEstado WHERE id = :id")
     suspend fun actualizarEstado(id: Int, nuevoEstado: String)
 
-    @Query("DELETE FROM solicitudes")
-    suspend fun borrarTodas()
-
+    // FUNCIÓN AÑADIDA: El repositorio la necesita para la sincronización
     @Query("DELETE FROM solicitudes WHERE usuarioEmail = :email")
     suspend fun borrarPorUsuario(email: String)
-}
 
+    @Query("DELETE FROM solicitudes")
+    suspend fun borrarTodas()
+}

@@ -21,8 +21,9 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE email = :email")
     suspend fun getByEmail(email: String): UserEntity?
 
-    @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
-    suspend fun getById(id: Long): UserEntity?
+    // FUNCIÓN AÑADIDA: El repositorio la necesita para la sincronización
+    @Query("SELECT * FROM users WHERE id = :userId")
+    suspend fun getById(userId: Long): UserEntity?
 
     @Query("SELECT * FROM users ORDER BY id ASC")
     suspend fun getAll(): List<UserEntity>

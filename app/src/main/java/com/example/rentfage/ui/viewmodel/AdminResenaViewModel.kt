@@ -6,20 +6,29 @@ import com.example.rentfage.data.local.entity.ResenaEntidad
 import com.example.rentfage.data.repository.ResenaRepositorio
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-data class AdminResenaUiState(
-    val resenas: List<ResenaEntidad> = emptyList()
-)
+class AdminResenaViewModel(private val resenaRepositorio: ResenaRepositorio) : ViewModel() {
 
-class AdminResenaViewModel(private val repository: ResenaRepositorio) : ViewModel() {
-
-    val uiState: StateFlow<AdminResenaUiState> = repository.todasLasResenas
-        .map { resenas -> AdminResenaUiState(resenas = resenas) }
+    val todasLasResenas: StateFlow<List<ResenaEntidad>> = resenaRepositorio.todasLasResenas
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Eagerly, // CAMBIADO A Eagerly
-            initialValue = AdminResenaUiState()
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
         )
+
+    // --- SINCRONIZACIÓN AUTOMÁTICA ---
+    init {
+        sincronizar()
+    }
+
+    private fun sincronizar() {
+        viewModelScope.launch {
+            // Llama al repositorio para traer las reseñas desde el microservicio.
+            // Si falla, el runCatching en el repositorio se encargará y la UI
+            // simplemente mostrará la lista local (que estaría vacía).
+            resenaRepositorio.sincronizarResenas()
+        }
+    }
 }
