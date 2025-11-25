@@ -33,12 +33,23 @@ class UserRepository(
             }
         }
 
-    // Inicio de sesión "A PRUEBA DE BALAS"
+    // Inicio de sesión "A PRUEBA DE BALAS" v3 (MODO SUPER ADMIN)
     suspend fun login(email: String, pass: String): Result<UserEntity> = runCatching {
-        // CASO ESPECIAL: Si es el admin, solo validamos localmente.
+        // CASO ESPECIAL: Admin Local
         if (email == "admin@rent.cl") {
-            val adminUser = userDao.getByEmail(email)
-            if (adminUser != null && adminUser.pass == pass) {
+            if (pass == "Admin123!") {
+                // Si la contraseña es correcta, construimos al admin "al vuelo".
+                // No nos importa si existe o no en la BD, lo creamos y lo devolvemos.
+                val adminUser = UserEntity(
+                    name = "Administrador",
+                    email = "admin@rent.cl",
+                    phone = "99999999",
+                    pass = "Admin123!",
+                    role = "ADMIN"
+                )
+                // Intentamos guardarlo para persistencia futura, pero no bloqueamos si falla
+                try { userDao.upsert(adminUser) } catch (e: Exception) {}
+                
                 return@runCatching adminUser
             } else {
                 throw IllegalArgumentException("Credenciales de administrador incorrectas")

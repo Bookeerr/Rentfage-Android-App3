@@ -8,6 +8,9 @@ import com.example.rentfage.data.remote.RemoteModule
 import com.example.rentfage.data.remote.dto.toSolicitudEntity
 import kotlinx.coroutines.flow.Flow
 import retrofit2.HttpException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ComprasRepository(
     private val solicitudDao: SolicitudDao,
@@ -23,20 +26,38 @@ class ComprasRepository(
     suspend fun sincronizarSolicitudes(email: String, userId: Long): Result<Unit> =
         runCatching {
             val response = comprasApi.obtenerComprasPorUsuario(userId)
+            
+            // CORRECCIÓN CRÍTICA: Si el servidor dice 404, significa "Lista Vacía", NO error.
+            if (response.code() == 404) {
+                solicitudDao.borrarPorUsuario(email)
+                return@runCatching
+            }
+
             if (!response.isSuccessful) throw HttpException(response)
 
             val entities = response.body().orEmpty()
                 .map { it.toSolicitudEntity(email.ifBlank { "Usuario #${it.idUsuario}" }) }
 
-            solicitudDao.borrarPorUsuario(email)
+            // Siempre actualizamos la base de datos local para que sea un espejo del servidor
             if (entities.isNotEmpty()) {
+                solicitudDao.borrarPorUsuario(email)
                 solicitudDao.insertAll(entities)
+            } else {
+                // Si el servidor devolvió 200 OK pero lista vacía
+                solicitudDao.borrarPorUsuario(email)
             }
         }
 
     suspend fun sincronizarTodas(): Result<Unit> =
         runCatching {
             val response = comprasApi.obtenerCompras()
+            
+            // Manejo de 404 o 204 como lista vacía
+            if (response.code() == 404 || response.code() == 204) {
+                solicitudDao.borrarTodas()
+                return@runCatching
+            }
+
             if (!response.isSuccessful) throw HttpException(response)
 
             val entities = response.body().orEmpty().map { dto ->
@@ -49,23 +70,37 @@ class ComprasRepository(
             }
         }
 
-    // CORREGIDO: Lógica más simple y directa para crear una solicitud
     suspend fun enviarSolicitud(
         userId: Long,
         casaId: Long,
         userEmail: String
     ): Result<Unit> = runCatching {
-        // 1. Enviamos la solicitud para crear la compra.
-        // Usaremos `crearCompraDetalle` si el backend lo soporta, ya que es más robusto.
-        // Si no, `crearCompra` con IDs también sirve.
+        // 1. PERSISTENCIA REAL: Enviamos la solicitud al microservicio (Base de Datos Remota)
         val response = comprasApi.crearCompra(userId, casaId)
         if (!response.isSuccessful) {
             throw HttpException(response)
         }
 
-        // 2. Después de crear, refrescamos la lista COMPLETA desde el servidor.
-        // Esto asegura que vemos la nueva solicitud y cualquier cambio de estado.
-        sincronizarSolicitudes(userEmail, userId).getOrThrow()
+        // 2. VISIBILIDAD INMEDIATA: Insertamos en local para que el usuario la vea YA.
+        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        
+        val nuevaSolicitudLocal = SolicitudEntity(
+            id = 0, // ID temporal
+            usuarioId = userId,
+            usuarioEmail = userEmail,
+            casaId = casaId.toInt(),
+            fecha = fechaActual,
+            estado = "Pendiente"
+        )
+        
+        solicitudDao.upsert(nuevaSolicitudLocal)
+
+        // 3. SINCRONIZACIÓN: Confirmamos con el servidor en segundo plano.
+        try {
+            sincronizarSolicitudes(userEmail, userId)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     suspend fun actualizarEstado(idCompra: Long, nuevoEstado: String): Result<Unit> =
