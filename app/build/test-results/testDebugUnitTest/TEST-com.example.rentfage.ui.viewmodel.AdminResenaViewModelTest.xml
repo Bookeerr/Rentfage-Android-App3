@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.rentfage.ui.viewmodel.AdminResenaViewModelTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-11-23T03:10:50.952Z" hostname="FRAN" time="0.389">
-  <properties/>
-  <testcase name="al_iniciar_carga_todas_las_resenas_del_repositorio" classname="com.example.rentfage.ui.viewmodel.AdminResenaViewModelTest" time="0.389"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

@@ -2,31 +2,39 @@ package com.example.rentfage.data.repository
 
 import com.example.rentfage.data.local.dao.UserDao
 import com.example.rentfage.data.local.entity.UserEntity
+import com.example.rentfage.data.remote.UsuariosApiService
+import com.example.rentfage.data.remote.dto.UserDto
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import retrofit2.Response
 
 class UserRepositoryTest {
 
     private lateinit var userDao: UserDao
+    private lateinit var usuariosApi: UsuariosApiService
     private lateinit var repository: UserRepository
 
     @Before
     fun setup() {
         userDao = mockk(relaxed = true)
-        repository = UserRepository(userDao)
+        usuariosApi = mockk(relaxed = true)
+        repository = UserRepository(userDao, usuariosApi)
     }
 
     // --- TEST LOGIN ---
     @Test
-    fun login_retorna_usuario_si_credenciales_son_correctas() = runBlocking {
+    fun login_retorna_usuario_si_credenciales_son_correctas_modo_offline() = runBlocking {
         val usuario = UserEntity(name = "Test", email = "test@mail.com", phone = "12345678", pass = "Pass123!", role = "USER")
-        // En tu codigo real, login llama a getByEmail y luego compara la pass manualmente
+        
+        // Simulamos fallo de red para activar el modo offline
+        coEvery { usuariosApi.login(any(), any()) } throws java.io.IOException("Error red")
         coEvery { userDao.getByEmail("test@mail.com") } returns usuario
 
         val resultado = repository.login("test@mail.com", "Pass123!")
@@ -36,8 +44,10 @@ class UserRepositoryTest {
     }
 
     @Test
-    fun login_retorna_fallo_si_password_es_incorrecta() = runBlocking {
+    fun login_retorna_fallo_si_password_es_incorrecta_modo_offline() = runBlocking {
         val usuario = UserEntity(name = "Test", email = "test@mail.com", phone = "12345678", pass = "Pass123!", role = "USER")
+        
+        coEvery { usuariosApi.login(any(), any()) } throws java.io.IOException("Error red")
         coEvery { userDao.getByEmail("test@mail.com") } returns usuario
 
         // Probamos con una contraseña que NO coincide
@@ -47,7 +57,8 @@ class UserRepositoryTest {
     }
 
     @Test
-    fun login_retorna_fallo_si_usuario_no_existe() = runBlocking {
+    fun login_retorna_fallo_si_usuario_no_existe_modo_offline() = runBlocking {
+        coEvery { usuariosApi.login(any(), any()) } throws java.io.IOException("Error red")
         coEvery { userDao.getByEmail("noexiste@mail.com") } returns null
 
         val resultado = repository.login("noexiste@mail.com", "Cualquiera")
@@ -58,31 +69,39 @@ class UserRepositoryTest {
     //  TEST REGISTRO
     @Test
     fun register_llama_al_DAO_para_insertar_usuario() = runBlocking {
-        // Simulamos que NO existe
-        coEvery { userDao.getByEmail("nuevo@mail.com") } returns null
-        // Simulamos que insertar devuelve el ID 1
-        coEvery { userDao.insertar(any()) } returns 1L
+        // Simulamos respuesta exitosa del servidor con un UserDto válido
+        val fakeUserDto = UserDto(
+            idUsuario = 1L,
+            nombre = "Nuevo",
+            apellido = "",
+            email = "nuevo@mail.com",
+            contrasena = "Pass123!",
+            telefono = "12345678",
+            direccion = ""
+        )
+        coEvery { usuariosApi.register(any()) } returns Response.success(fakeUserDto)
+        
+        // Simulamos inserción en BD
+        coEvery { userDao.upsert(any()) } returns 1L
         
         val resultado = repository.register("Nuevo", "nuevo@mail.com", "12345678", "Pass123!")
 
         assertTrue(resultado.isSuccess)
-        assertEquals(1L, resultado.getOrNull())
         
-        // Verificamos que se llamo a insertar con los datos correctos
-        coVerify { userDao.insertar(match { it.email == "nuevo@mail.com" && it.pass == "Pass123!" }) }
+        // Verificamos que se llamo a insertar/upsert con los datos correctos
+        coVerify { userDao.upsert(match { it.email == "nuevo@mail.com" && it.pass == "Pass123!" }) }
     }
 
     @Test
-    fun register_falla_si_el_email_ya_existe() = runBlocking {
-        val usuarioExistente = UserEntity(name = "Test", email = "test@mail.com", phone = "12345678", pass = "Pass123!", role = "USER")
-        // Simulamos que YA existe
-        coEvery { userDao.getByEmail("test@mail.com") } returns usuarioExistente
+    fun register_falla_si_servidor_falla() = runBlocking {
+        // Simulamos error del servidor
+        coEvery { usuariosApi.register(any()) } returns Response.error(400, "".toResponseBody(null))
 
         val resultado = repository.register("Otro", "test@mail.com", "12345678", "Pass123!")
 
         assertTrue(resultado.isFailure)
         // Verificamos que NO se llamo a insertar
-        coVerify(exactly = 0) { userDao.insertar(any()) }
+        coVerify(exactly = 0) { userDao.upsert(any()) }
     }
 
     //  TEST OBTENER USUARIO

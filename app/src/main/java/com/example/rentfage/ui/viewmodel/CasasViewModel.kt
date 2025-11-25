@@ -102,25 +102,28 @@ class CasasViewModel(private val casasRepository: CasasRepository) : ViewModel()
     }
 
     fun onAddressChange(newAddress: String) {
-        _addEditState.update { it.copy(address = newAddress, canSubmit = canSubmit()) }
+        _addEditState.update { it.copy(address = newAddress, canSubmit = checkCanSubmit(it.copy(address = newAddress))) }
     }
     fun onPriceChange(newPrice: String) {
-        _addEditState.update { it.copy(price = newPrice, canSubmit = canSubmit()) }
+        _addEditState.update { it.copy(price = newPrice, canSubmit = checkCanSubmit(it.copy(price = newPrice))) }
     }
     fun onDetailsChange(newDetails: String) {
-        _addEditState.update { it.copy(details = newDetails, canSubmit = canSubmit()) }
+        _addEditState.update { it.copy(details = newDetails, canSubmit = checkCanSubmit(it.copy(details = newDetails))) }
     }
     fun onLatitudeChange(newLat: String) {
-        _addEditState.update { it.copy(latitude = newLat, canSubmit = canSubmit()) }
+        _addEditState.update { it.copy(latitude = newLat, canSubmit = checkCanSubmit(it.copy(latitude = newLat))) }
     }
     fun onLongitudeChange(newLon: String) {
-        _addEditState.update { it.copy(longitude = newLon, canSubmit = canSubmit()) }
+        _addEditState.update { it.copy(longitude = newLon, canSubmit = checkCanSubmit(it.copy(longitude = newLon))) }
     }
     fun onImageUriChange(newUri: String?) {
-        _addEditState.update { it.copy(imageUri = newUri, canSubmit = canSubmit()) }
+        _addEditState.update { it.copy(imageUri = newUri, canSubmit = checkCanSubmit(it.copy(imageUri = newUri))) }
     }
 
     fun saveProperty(id: Int?) {
+        // CORRECCIÓN: Validar antes de guardar
+        if (!canSubmit()) return
+
         viewModelScope.launch {
             _addEditState.update { it.copy(isSaving = true) }
 
@@ -152,8 +155,13 @@ class CasasViewModel(private val casasRepository: CasasRepository) : ViewModel()
         _addEditState.value = AddEditCasaState()
     }
     
+    // Helper privado que accede al estado actual
     private fun canSubmit(): Boolean {
-        val state = _addEditState.value
+        return checkCanSubmit(_addEditState.value)
+    }
+
+    // Helper puro para verificar un estado dado (usado al actualizar campos)
+    private fun checkCanSubmit(state: AddEditCasaState): Boolean {
         return state.address.isNotBlank() && 
                state.price.isNotBlank() && 
                state.details.isNotBlank() && 
@@ -161,11 +169,9 @@ class CasasViewModel(private val casasRepository: CasasRepository) : ViewModel()
                state.longitude.isNotBlank()
     }
 
-    // --- FUNCIÓN DE BORRADO (CORREGIDO) ---
     fun deleteCasa(casa: CasaEntity) {
         viewModelScope.launch {
             casasRepository.borrarCasa(casa)
-            // Opcional: Sincronizar después de borrar para reflejar en el servidor si fuera necesario
             sincronizar()
         }
     }

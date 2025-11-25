@@ -5,7 +5,11 @@ import com.example.rentfage.data.repository.CasasRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -43,12 +47,22 @@ class CasasViewModelTest {
         
         // Act
         val vm = CasasViewModel(repoTest)
-        // Ya no se necesitan trucos. El StateFlow se inicia Eagerly.
+        
+        // CORRECCIÓN: "Despertamos" al StateFlow suscribiéndonos temporalmente
+        val scope = CoroutineScope(Dispatchers.Unconfined)
+        val job = scope.launch {
+            vm.uiState.collect {}
+        }
+        
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
         // Assert
         assertEquals(1, vm.uiState.value.casas.size)
         assertEquals("Calle 1", vm.uiState.value.casas[0].address)
+        
+        // Limpieza
+        job.cancel()
+        scope.cancel()
     }
 
     @Test

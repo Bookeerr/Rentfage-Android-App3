@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.rentfage.ui.viewmodel.ResenaViewModelTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2025-11-23T03:10:52.525Z" hostname="FRAN" time="0.139">
-  <properties/>
-  <testcase name="cargarResenaDeUsuario_muestra_la_existente_y_limpia_el_campo_nuevo" classname="com.example.rentfage.ui.viewmodel.ResenaViewModelTest" time="0.079"/>
-  <testcase name="onComentarioChange_respeta_el_limite_de_300_caracteres" classname="com.example.rentfage.ui.viewmodel.ResenaViewModelTest" time="0.03"/>
-  <testcase name="enviarResena_llama_al_repositorio_y_limpia_el_comentario" classname="com.example.rentfage.ui.viewmodel.ResenaViewModelTest" time="0.03"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

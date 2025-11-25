@@ -1,7 +1,15 @@
 package com.example.rentfage.ui.viewmodel
 
 import com.example.rentfage.data.local.entity.CasaEntity
-import org.junit.Assert.*
+import com.example.rentfage.data.local.entity.UserEntity
+import com.example.rentfage.data.repository.CasasRepository
+import com.example.rentfage.data.repository.ComprasRepository
+import com.example.rentfage.data.repository.UserRepository
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -14,67 +22,74 @@ import org.robolectric.shadows.ShadowLooper
 class HistorialViewModelTest {
 
     private lateinit var viewModel: HistorialViewModel
+    private lateinit var comprasRepository: ComprasRepository
+    private lateinit var casasRepository: CasasRepository
+    private lateinit var userRepository: UserRepository
 
     @Before
     fun setUp() {
-        // Creamos una nueva instancia limpia para cada test
-        viewModel = HistorialViewModel()
-        // Limpiamos el usuario activo antes de cada test
-        AuthViewModel.activeUserEmail = null
+        // 1. Creamos Mocks (simulaciones) de los repositorios
+        comprasRepository = mockk(relaxed = true)
+        casasRepository = mockk(relaxed = true)
+        userRepository = mockk(relaxed = true)
+
+        // 2. Simulamos respuestas básicas para que el ViewModel no falle al iniciar
+        // (El ViewModel intenta cargar listas en el init)
+        every { comprasRepository.historialDeUsuario(any()) } returns flowOf(emptyList())
+        every { comprasRepository.todasLasSolicitudes } returns flowOf(emptyList())
+        every { casasRepository.todasLasCasas } returns flowOf(emptyList())
+        
+        // Simulamos un usuario activo por defecto
+        AuthViewModel.activeUserEmail = "test@user.com"
     }
 
     @Test
-    fun addSolicitud_cuandoHayUsuario_anadeLaSolicitud() {
-        // Arrange
-        AuthViewModel.activeUserEmail = "user1@test.com"
-        val casa = CasaEntity(id = 1, price = "100", address = "A", details = "D", imageUri = "U", latitude = 0.0, longitude = 0.0)
+    fun addSolicitud_llamaAlRepositorioCorrectamente() {
+        // Arrange: Preparamos el escenario
+        val emailUsuario = "test@user.com"
+        AuthViewModel.activeUserEmail = emailUsuario
+        
+        val casa = CasaEntity(id = 1, price = "100", address = "Calle Falsa 123", details = "Detalle", imageUri = "", latitude = 0.0, longitude = 0.0)
+        val usuarioMock = UserEntity(id = 99, name = "Test", email = emailUsuario, phone = "123", pass = "123", role = "USER")
 
-        // Act
+        // Simulamos que el repositorio de usuarios encuentra al usuario
+        coEvery { userRepository.getUserByEmail(emailUsuario) } returns usuarioMock
+        
+        // Simulamos que enviar la solicitud funciona
+        coEvery { comprasRepository.enviarSolicitud(any(), any(), any()) } returns Result.success(Unit)
+
+        // Inicializamos el ViewModel (esto dispara el init y las llamadas iniciales)
+        viewModel = HistorialViewModel(comprasRepository, casasRepository, userRepository)
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+
+        // Act: Ejecutamos la acción de añadir solicitud
         viewModel.addSolicitud(casa)
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
-        // Assert
-        val solicitudes = viewModel.uiState.value.solicitudes
-        assertEquals(1, solicitudes.size)
-        assertEquals("user1@test.com", solicitudes[0].usuarioEmail)
+        // Assert: Verificamos que el ViewModel llamó a la función 'enviarSolicitud' del repositorio
+        // con los parámetros correctos (ID de usuario 99 y ID de casa 1)
+        coVerify { 
+            comprasRepository.enviarSolicitud(
+                userId = 99, 
+                casaId = 1, 
+                userEmail = emailUsuario
+            ) 
+        }
     }
 
     @Test
-    fun cargarSolicitudesDeUsuario_soloMuestraLasDelUsuarioActivo() {
-        // Arrange: Añadimos dos solicitudes con usuarios diferentes
-        AuthViewModel.activeUserEmail = "user1@test.com"
-        viewModel.addSolicitud(CasaEntity(id = 1, price = "", address = "", details = "", imageUri = "", latitude = 0.0, longitude = 0.0))
-        
-        AuthViewModel.activeUserEmail = "user2@test.com"
-        viewModel.addSolicitud(CasaEntity(id = 2, price = "", address = "", details = "", imageUri = "", latitude = 0.0, longitude = 0.0))
-
-        // Act: Nos logueamos como el primer usuario y recargamos
-        AuthViewModel.activeUserEmail = "user1@test.com"
-        viewModel.cargarSolicitudesDeUsuario()
-        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
-
-        // Assert
-        val solicitudes = viewModel.uiState.value.solicitudes
-        assertEquals(1, solicitudes.size)
-        assertEquals("user1@test.com", solicitudes[0].usuarioEmail)
-    }
-
-    @Test
-    fun aprobarSolicitud_cambiaElEstadoCorrectamente() {
+    fun aprobarSolicitud_llamaAlRepositorioParaActualizarEstado() {
         // Arrange
-        AuthViewModel.activeUserEmail = "admin@test.com"
-        viewModel.addSolicitud(CasaEntity(id = 1, price = "", address = "", details = "", imageUri = "", latitude = 0.0, longitude = 0.0))
-        
-        // Para obtener el id, primero cargamos todas las solicitudes
-        viewModel.cargarTodasLasSolicitudes()
-        val solicitudId = viewModel.uiState.value.solicitudes[0].id
+        viewModel = HistorialViewModel(comprasRepository, casasRepository, userRepository)
+        val solicitudId = 123
 
         // Act
         viewModel.aprobarSolicitud(solicitudId)
         ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
 
         // Assert
-        val solicitudActualizada = viewModel.uiState.value.solicitudes.find { it.id == solicitudId }
-        assertEquals(EstadoSolicitud.Aprobada, solicitudActualizada?.estado)
+        coVerify { 
+            comprasRepository.actualizarEstado(123, "Aprobada")
+        }
     }
 }

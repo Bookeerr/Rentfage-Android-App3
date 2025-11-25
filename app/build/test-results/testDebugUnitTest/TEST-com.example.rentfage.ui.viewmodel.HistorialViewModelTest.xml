@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.rentfage.ui.viewmodel.HistorialViewModelTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2025-11-23T03:10:52.281Z" hostname="FRAN" time="0.084">
-  <properties/>
-  <testcase name="addSolicitud_cuandoHayUsuario_anadeLaSolicitud" classname="com.example.rentfage.ui.viewmodel.HistorialViewModelTest" time="0.035"/>
-  <testcase name="cargarSolicitudesDeUsuario_soloMuestraLasDelUsuarioActivo" classname="com.example.rentfage.ui.viewmodel.HistorialViewModelTest" time="0.022"/>
-  <testcase name="aprobarSolicitud_cambiaElEstadoCorrectamente" classname="com.example.rentfage.ui.viewmodel.HistorialViewModelTest" time="0.026"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
