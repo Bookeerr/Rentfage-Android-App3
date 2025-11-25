@@ -44,8 +44,40 @@ class CasasRepository(
             casaDao.insertarTodas(entities)
         }
 
-    // --- ESCRITURA LOCAL ---
+    // --- ESCRITURA (CONEXIÓN A MICROSERVICIO) ---
     suspend fun insertarCasa(casa: CasaEntity) {
+        // 1. Intentamos enviar al servidor PRIMERO
+        try {
+            // Limpiamos el precio para que sea un número
+            val precioDouble = casa.price.replace("S/", "").replace(" ", "").toDoubleOrNull() ?: 0.0
+            
+            // Creamos un DTO con los datos que tenemos y valores por defecto para los que faltan
+            val nuevoDto = CasaDto(
+                titulo = "Casa en ${casa.address}", // Título por defecto
+                descripcion = casa.details,
+                direccion = casa.address,
+                precio = precioDouble,
+                habitaciones = 2, // Valor por defecto
+                banos = 1,        // Valor por defecto
+                area = 60.0,      // Valor por defecto
+                tipo = "Casa",    // Valor por defecto
+                estado = "Disponible",
+                propietarioId = 1 // ID de admin o usuario por defecto
+            )
+
+            val response = casasApi.crearCasa(nuevoDto)
+            
+            if (response.isSuccessful) {
+                // Si se guardó en el servidor, sincronizamos para tenerla oficial
+                sincronizarCasas()
+                return 
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // 2. Si falló el servidor o no hay internet, guardamos en LOCAL
+        // (Advertencia: Esto se borrará en la próxima sincronización exitosa si no se subió)
         casaDao.insertar(casa)
     }
 

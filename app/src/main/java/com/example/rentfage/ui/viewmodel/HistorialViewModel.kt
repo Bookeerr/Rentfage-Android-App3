@@ -69,7 +69,23 @@ class HistorialViewModel(
 
         combine(flujoSolicitudes, casasRepository.todasLasCasas) { solicitudes, casas ->
             solicitudes.map { solicitud ->
-                val casaDetalle = casas.find { it.id == solicitud.casaId }
+                // Buscamos la casa en la lista local
+                var casaDetalle = casas.find { it.id == solicitud.casaId }
+
+                // MEJORA: Si no encontramos la casa (porque no se ha sincronizado o se borró),
+                // creamos una "Casa Temporal" para que la tarjeta no salga vacía.
+                if (casaDetalle == null) {
+                    casaDetalle = CasaEntity(
+                        id = solicitud.casaId,
+                        price = "Consultar",
+                        address = "Casa #${solicitud.casaId}", // Mostramos el ID al menos
+                        details = "Detalles no disponibles offline",
+                        imageUri = "",
+                        latitude = 0.0,
+                        longitude = 0.0
+                    )
+                }
+
                 SolicitudUi(
                     id = solicitud.id,
                     usuarioEmail = solicitud.usuarioEmail,
