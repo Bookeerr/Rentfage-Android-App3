@@ -1,0 +1,20 @@
+11-25 02:21:39.840 17535 17550 I TestRunner: started: insertarYBorrarUsuario(com.example.rentfage.PruebasDeBaseDeDatos)
+11-25 02:21:39.899 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b802c98) locale list changing from [] to [en-US]
+11-25 02:21:39.903 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b8067f8) locale list changing from [] to [en-US]
+11-25 02:21:39.918 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b802fb8) locale list changing from [] to [en-US]
+11-25 02:21:39.925 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b802018) locale list changing from [] to [en-US]
+11-25 02:21:39.935 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b802658) locale list changing from [] to [en-US]
+11-25 02:21:39.947 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b801cf8) locale list changing from [] to [en-US]
+11-25 02:21:39.958 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b7ff138) locale list changing from [] to [en-US]
+11-25 02:21:39.963 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b804598) locale list changing from [] to [en-US]
+11-25 02:21:39.979 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b802978) locale list changing from [] to [en-US]
+11-25 02:21:39.983 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b8016b8) locale list changing from [] to [en-US]
+11-25 02:21:39.987 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b805538) locale list changing from [] to [en-US]
+11-25 02:21:39.990 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b801078) locale list changing from [] to [en-US]
+11-25 02:21:39.996 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b7ff458) locale list changing from [] to [en-US]
+11-25 02:21:39.999 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b7ffdb8) locale list changing from [] to [en-US]
+11-25 02:21:40.007 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b800a38) locale list changing from [] to [en-US]
+11-25 02:21:40.029 17535 17552 E ashmem  : Pinning is deprecated since Android Q. Please use trim or other methods.
+11-25 02:21:40.046 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b8003f8) locale list changing from [] to [en-US]
+11-25 02:21:40.082 17404 17515 I .apps.wellbeing: AssetManager2(0x7d561b805218) locale list changing from [] to [en-US]
+11-25 02:21:40.084 17535 17550 I TestRunner: finished: insertarYBorrarUsuario(com.example.rentfage.PruebasDeBaseDeDatos)

@@ -36,9 +36,9 @@ public final class SolicitudDao_Impl implements SolicitudDao {
 
   private final SharedSQLiteStatement __preparedStmtOfActualizarEstado;
 
-  private final SharedSQLiteStatement __preparedStmtOfBorrarTodas;
-
   private final SharedSQLiteStatement __preparedStmtOfBorrarPorUsuario;
+
+  private final SharedSQLiteStatement __preparedStmtOfBorrarTodas;
 
   public SolicitudDao_Impl(@NonNull final RoomDatabase __db) {
     this.__db = __db;
@@ -68,19 +68,19 @@ public final class SolicitudDao_Impl implements SolicitudDao {
         return _query;
       }
     };
-    this.__preparedStmtOfBorrarTodas = new SharedSQLiteStatement(__db) {
-      @Override
-      @NonNull
-      public String createQuery() {
-        final String _query = "DELETE FROM solicitudes";
-        return _query;
-      }
-    };
     this.__preparedStmtOfBorrarPorUsuario = new SharedSQLiteStatement(__db) {
       @Override
       @NonNull
       public String createQuery() {
         final String _query = "DELETE FROM solicitudes WHERE usuarioEmail = ?";
+        return _query;
+      }
+    };
+    this.__preparedStmtOfBorrarTodas = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "DELETE FROM solicitudes";
         return _query;
       }
     };
@@ -153,29 +153,6 @@ public final class SolicitudDao_Impl implements SolicitudDao {
   }
 
   @Override
-  public Object borrarTodas(final Continuation<? super Unit> $completion) {
-    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
-      @Override
-      @NonNull
-      public Unit call() throws Exception {
-        final SupportSQLiteStatement _stmt = __preparedStmtOfBorrarTodas.acquire();
-        try {
-          __db.beginTransaction();
-          try {
-            _stmt.executeUpdateDelete();
-            __db.setTransactionSuccessful();
-            return Unit.INSTANCE;
-          } finally {
-            __db.endTransaction();
-          }
-        } finally {
-          __preparedStmtOfBorrarTodas.release(_stmt);
-        }
-      }
-    }, $completion);
-  }
-
-  @Override
   public Object borrarPorUsuario(final String email, final Continuation<? super Unit> $completion) {
     return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
       @Override
@@ -195,6 +172,29 @@ public final class SolicitudDao_Impl implements SolicitudDao {
           }
         } finally {
           __preparedStmtOfBorrarPorUsuario.release(_stmt);
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object borrarTodas(final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfBorrarTodas.acquire();
+        try {
+          __db.beginTransaction();
+          try {
+            _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return Unit.INSTANCE;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfBorrarTodas.release(_stmt);
         }
       }
     }, $completion);

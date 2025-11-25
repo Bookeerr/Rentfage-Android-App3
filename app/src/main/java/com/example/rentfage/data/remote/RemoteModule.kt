@@ -14,7 +14,7 @@ object RemoteModule {
     // Si quieres volver a usar el emulador con localhost, cambia la línea de arriba por:
     // private const val DEFAULT_BASE_HOST = "http://10.0.2.2"
 
-    // CORRECCIÓN RÁPIDA: Quitamos el prefijo /api/ para que coincida con tu microservicio.
+    // Quitamos el prefijo api para microservicio.
     private const val API_PREFIX = "/"
 
     @Volatile

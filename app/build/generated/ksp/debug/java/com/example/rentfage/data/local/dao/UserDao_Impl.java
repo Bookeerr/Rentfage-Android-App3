@@ -253,11 +253,11 @@ public final class UserDao_Impl implements UserDao {
   }
 
   @Override
-  public Object getById(final long id, final Continuation<? super UserEntity> $completion) {
-    final String _sql = "SELECT * FROM users WHERE id = ? LIMIT 1";
+  public Object getById(final long userId, final Continuation<? super UserEntity> $completion) {
+    final String _sql = "SELECT * FROM users WHERE id = ?";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 1);
     int _argIndex = 1;
-    _statement.bindLong(_argIndex, id);
+    _statement.bindLong(_argIndex, userId);
     final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
     return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<UserEntity>() {
       @Override
