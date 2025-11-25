@@ -1,7 +1,7 @@
 EXECUTING: C:\Users\quint\AppData\Local\Android\Sdk\build-tools\35.0.0\aapt.exe dump badging C:\Users\quint\AndroidStudioProjects\Rentfage-Android-App3\app\build\intermediates\apk\debug\app-debug.apk
 CURRENT_WORKING_DIRECTORY: C:\Users\quint\AndroidStudioProjects\Rentfage-Android-App3
-START_TIME: 2025-11-25 14:24:30.549
-START_TIME-NANOS: 2025-11-25 14:24:30.549343300
+START_TIME: 2025-11-25 17:47:53.026
+START_TIME-NANOS: 2025-11-25 17:47:53.026978300
 ENVIRONMENT:
 
 *****************************************
@@ -124,7 +124,7 @@ locales: '--_--' 'af' 'am' 'ar' 'as' 'az' 'be' 'bg' 'bn' 'bs' 'ca' 'cs' 'da' 'de
 densities: '160' '240' '320' '480' '640' '65534'
 native-code: 'x86_64'
 ===================
-END_TIME: 2025-11-25 14:24:30.632
-END_TIME-NANOS: 2025-11-25 14:24:30.632153000
-DURATION: 82ms
+END_TIME: 2025-11-25 17:47:53.101
+END_TIME-NANOS: 2025-11-25 17:47:53.101247900
+DURATION: 74ms
 EXIT CODE: 0

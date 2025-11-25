@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='UTF-8' ?>
-<testsuite name="com.example.rentfage.PruebasDePreferencias" tests="2" failures="0" errors="0" skipped="0" time="1.667" timestamp="2025-11-25T17:24:31" hostname="localhost">
+<testsuite name="com.example.rentfage.PruebasDePreferencias" tests="2" failures="0" errors="0" skipped="0" time="2.164" timestamp="2025-11-25T20:47:54" hostname="localhost">
   <properties>
     <property name="device" value="Pixel_8(AVD) - 16" />
     <property name="flavor" value="" />
     <property name="project" value=":app" />
   </properties>
-  <testcase name="guardarYLeerEstadoSesion" classname="com.example.rentfage.PruebasDePreferencias" time="0.407" />
-  <testcase name="guardarYLeerRolUsuario" classname="com.example.rentfage.PruebasDePreferencias" time="0.032" />
+  <testcase name="guardarYLeerEstadoSesion" classname="com.example.rentfage.PruebasDePreferencias" time="0.48" />
+  <testcase name="guardarYLeerRolUsuario" classname="com.example.rentfage.PruebasDePreferencias" time="0.034" />
 </testsuite>

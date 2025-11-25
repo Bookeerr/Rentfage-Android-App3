@@ -44,10 +44,11 @@ class ValidatorsTest {
         assertEquals("Solo números", resultado)
     }
 
+    // CORREGIDO: Actualizamos el mensaje esperado para reflejar la nueva regla de 8 dígitos
     @Test
     fun validatePhoneDigitsOnly_muy_corto_devuelve_error() {
         val resultado = validatePhoneDigitsOnly("123")
-        assertEquals("Debe tener entre 8 y 15 dígitos", resultado)
+        assertEquals("Debe tener 8 dígitos", resultado)
     }
 
     // --- TEST PASSWORD ---

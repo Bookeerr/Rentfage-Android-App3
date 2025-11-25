@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.rentfage.ui.viewmodel.ResenaViewModelTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2025-11-25T17:28:09.945Z" hostname="FRAN" time="3.98">
+<testsuite name="com.example.rentfage.ui.viewmodel.ResenaViewModelTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2025-11-25T20:55:01.274Z" hostname="FRAN" time="4.043">
   <properties/>
-  <testcase name="cargarResenaDeUsuario_muestra_la_existente_y_limpia_el_campo_nuevo" classname="com.example.rentfage.ui.viewmodel.ResenaViewModelTest" time="3.851"/>
-  <testcase name="onComentarioChange_respeta_el_limite_de_300_caracteres" classname="com.example.rentfage.ui.viewmodel.ResenaViewModelTest" time="0.044"/>
-  <testcase name="enviarResena_llama_al_repositorio_y_limpia_el_comentario" classname="com.example.rentfage.ui.viewmodel.ResenaViewModelTest" time="0.084"/>
+  <testcase name="cargarResenaDeUsuario_muestra_la_existente_y_limpia_el_campo_nuevo" classname="com.example.rentfage.ui.viewmodel.ResenaViewModelTest" time="3.907"/>
+  <testcase name="onComentarioChange_respeta_el_limite_de_300_caracteres" classname="com.example.rentfage.ui.viewmodel.ResenaViewModelTest" time="0.048"/>
+  <testcase name="enviarResena_llama_al_repositorio_y_limpia_el_comentario" classname="com.example.rentfage.ui.viewmodel.ResenaViewModelTest" time="0.087"/>
   <system-out><![CDATA[WARNING: No manifest file found at .\AndroidManifest.xml.
 Falling back to the Android OS resources only.
 To remove this warning, annotate your test class with @Config(manifest=Config.NONE).

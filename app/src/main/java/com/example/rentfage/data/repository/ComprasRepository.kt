@@ -75,13 +75,19 @@ class ComprasRepository(
         casaId: Long,
         userEmail: String
     ): Result<Unit> = runCatching {
-        // 1. PERSISTENCIA REAL: Enviamos la solicitud al microservicio (Base de Datos Remota)
+        // 1. PERSISTENCIA REAL: Enviamos la solicitud al microservicio
         val response = comprasApi.crearCompra(userId, casaId)
+        
+        // OPCIÓN A IMPLEMENTADA: Ignoramos el 404 al crear (si el servidor devuelve eso por algún motivo)
+        // o simplemente si falla, lanzamos excepción, pero el 404 de 'obtener' ya lo manejamos arriba.
+        
         if (!response.isSuccessful) {
+            // A veces el servidor devuelve 201 con un body raro, o un 200.
+            // Si devuelve 404 aquí sería raro, pero lanzamos error.
             throw HttpException(response)
         }
 
-        // 2. VISIBILIDAD INMEDIATA: Insertamos en local para que el usuario la vea YA.
+        // 2. VISIBILIDAD INMEDIATA: Insertamos en local
         val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         
         val nuevaSolicitudLocal = SolicitudEntity(
@@ -95,10 +101,14 @@ class ComprasRepository(
         
         solicitudDao.upsert(nuevaSolicitudLocal)
 
-        // 3. SINCRONIZACIÓN: Confirmamos con el servidor en segundo plano.
+        // 3. SINCRONIZACIÓN: Intentamos confirmar con el servidor.
+        // Aquí es donde el 404 de 'obtenerComprasPorUsuario' podría haber molestado antes.
+        // Pero con el arreglo de arriba (en sincronizarSolicitudes), ya no molestará.
         try {
             sincronizarSolicitudes(userEmail, userId)
         } catch (e: Exception) {
+            // Si falla la sincro (por ejemplo, el servidor tardó en indexar), no pasa nada.
+            // El usuario ya ve su solicitud local.
             e.printStackTrace()
         }
     }
