@@ -150,7 +150,7 @@ class AuthViewModel(
         }
     }
 
-    // --- REGISTRO ---
+    // REGISTRO
     fun onNameChange(value: String) {
         _register.update { it.copy(name = value, nameError = validateNameLettersOnly(value)) }
         recomputeRegisterCanSubmit()
@@ -162,7 +162,9 @@ class AuthViewModel(
     }
 
     fun onPhoneChange(value: String) {
-        _register.update { it.copy(phone = value, phoneError = validatePhoneDigitsOnly(value)) }
+        val filteredValue = value.filter { it.isDigit() }.take(8)
+        
+        _register.update { it.copy(phone = filteredValue, phoneError = validatePhoneDigitsOnly(filteredValue)) }
         recomputeRegisterCanSubmit()
     }
 	
@@ -210,7 +212,7 @@ class AuthViewModel(
         _register.update { it.copy(success = false, errorMsg = null) }
     }
 
-    // --- CAMBIAR CONTRASEÑA ---
+    // CAMBIAR CONTRASEÑA
     fun onCurrentPasswordChange(value: String) {
         _changePassword.update { it.copy(currentPassword = value, currentPasswordError = null) } 
         recomputeChangePasswordCanSubmit()

@@ -2,7 +2,7 @@
 
 emulator-5554primary…
 |
-PruebasDePreferenciascom.example.rentfageguardarYLeerEstadoSesion2å…—É€’†ö:æ…—É€üRB
+PruebasDePreferenciascom.example.rentfageguardarYLeerEstadoSesion2ÍÌ—É€éÒĞ:ÎÌ—É€ÿÚCB
 emulator-5554primary"ê
 
 logcatandroidÔ
@@ -17,7 +17,7 @@
 device-info.cpuinfoandroid
 ŠC:\Users\quint\AndroidStudioProjects\Rentfage-Android-App3\app\build\outputs\androidTest-results\connected\debug\Pixel_8(AVD) - 16\cpuinfo€
 y
-PruebasDePreferenciascom.example.rentfageguardarYLeerRolUsuario2æ…—ÉÀˆì_:æ…—ÉÀªqB
+PruebasDePreferenciascom.example.rentfageguardarYLeerRolUsuario2ÎÌ—ÉÀÔâL:ÎÌ—É€àÆ[B
 emulator-5554primary"è
 
 logcatandroidÒ

@@ -1,5 +1,5 @@
 # proto-message: google.testing.platform.proto.api.core.TestSuiteResult
-# 2025-11-25T14:53:27.779268700Z:
+# 2025-11-25T17:24:31.445138800Z:
 test_suite_meta_data {
   scheduled_test_case_count: 2
   device {
@@ -14,12 +14,12 @@ test_result {
     test_package: "com.example.rentfage"
     test_method: "guardarYLeerEstadoSesion"
     start_time {
-      seconds: 1764082405
-      nanos: 516000000
+      seconds: 1764091469
+      nanos: 706000000
     }
     end_time {
-      seconds: 1764082406
-      nanos: 174000000
+      seconds: 1764091470
+      nanos: 142000000
     }
     device {
       id: "emulator-5554"
@@ -70,12 +70,12 @@ test_result {
     test_package: "com.example.rentfage"
     test_method: "guardarYLeerRolUsuario"
     start_time {
-      seconds: 1764082406
-      nanos: 201000000
+      seconds: 1764091470
+      nanos: 161000000
     }
     end_time {
-      seconds: 1764082406
-      nanos: 237000000
+      seconds: 1764091470
+      nanos: 192000000
     }
     device {
       id: "emulator-5554"

@@ -1,2 +1,24 @@
-11-25 14:53:23.158 19457 19472 I TestRunner: started: guardarYLeerEstadoSesion(com.example.rentfage.PruebasDePreferencias)
-11-25 14:53:23.809 19457 19472 I TestRunner: finished: guardarYLeerEstadoSesion(com.example.rentfage.PruebasDePreferencias)
+11-25 17:24:27.080 20333 20347 I TestRunner: started: guardarYLeerEstadoSesion(com.example.rentfage.PruebasDePreferencias)
+11-25 17:24:27.085 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b80a038) locale list changing from [] to [en-US]
+11-25 17:24:27.087 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b80a358) locale list changing from [] to [en-US]
+11-25 17:24:27.095 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b807ab8) locale list changing from [] to [en-US]
+11-25 17:24:27.100 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b809098) locale list changing from [] to [en-US]
+11-25 17:24:27.104 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b8067f8) locale list changing from [] to [en-US]
+11-25 17:24:27.108 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b8000d8) locale list changing from [] to [en-US]
+11-25 17:24:27.113 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7e4e78) locale list changing from [] to [en-US]
+11-25 17:24:27.116 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7e6db8) locale list changing from [] to [en-US]
+11-25 17:24:27.118 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7e0ff8) locale list changing from [] to [en-US]
+11-25 17:24:27.122 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7e4518) locale list changing from [] to [en-US]
+11-25 17:24:27.124 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b809d18) locale list changing from [] to [en-US]
+11-25 17:24:27.126 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b808738) locale list changing from [] to [en-US]
+11-25 17:24:27.146 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7f67b8) locale list changing from [] to [en-US]
+11-25 17:24:27.151 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b8099f8) locale list changing from [] to [en-US]
+11-25 17:24:27.154 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7f1678) locale list changing from [] to [en-US]
+11-25 17:24:27.158 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7f6df8) locale list changing from [] to [en-US]
+11-25 17:24:27.163 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7f4558) locale list changing from [] to [en-US]
+11-25 17:24:27.165 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7e1c78) locale list changing from [] to [en-US]
+11-25 17:24:27.167 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7fbc18) locale list changing from [] to [en-US]
+11-25 17:24:27.168 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7f9058) locale list changing from [] to [en-US]
+11-25 17:24:27.170 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7fced8) locale list changing from [] to [en-US]
+11-25 17:24:27.175 17404 17514 I .apps.wellbeing: AssetManager2(0x7d561b7fd1f8) locale list changing from [] to [en-US]
+11-25 17:24:27.522 20333 20347 I TestRunner: finished: guardarYLeerEstadoSesion(com.example.rentfage.PruebasDePreferencias)

@@ -17,11 +17,14 @@ fun validateNameLettersOnly(name: String): String? {
     return if (!regex.matches(name)) "Solo letras y espacios" else null
 }
 
-// Valida que el teléfono tenga solo dígitos y una longitud razonable
+// CORREGIDO: Valida que el teléfono tenga EXACTAMENTE 8 dígitos
 fun validatePhoneDigitsOnly(phone: String): String? {
     if (phone.isBlank()) return "El teléfono es obligatorio"
     if (!phone.all { it.isDigit() }) return "Solo números"
-    if (phone.length !in 8..15) return "Debe tener entre 8 y 15 dígitos"
+    
+    // Cambio solicitado: Límite exacto de 8 números
+    if (phone.length != 8) return "Debe tener 8 dígitos"
+    
     return null
 }
 

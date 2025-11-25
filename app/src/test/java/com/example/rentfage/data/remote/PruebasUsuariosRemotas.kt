@@ -21,7 +21,7 @@ class PruebasUsuariosRemotas {
         mockWebServer = MockWebServer()
         mockWebServer.start()
 
-        // CORRECCIÓN EXTRA: Configuramos Gson en modo "Lenient" para ser más tolerante
+        // Configuramos Gson en modo "Lenient" para ser más tolerante
         val gson = GsonBuilder()
             .setLenient()
             .create()
