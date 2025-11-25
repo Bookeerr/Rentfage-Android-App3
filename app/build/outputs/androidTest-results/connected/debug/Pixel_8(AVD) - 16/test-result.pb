@@ -1,12 +1,12 @@
 
 
-emulator-5554primaryÄ
-z
-PruebasDeBaseDeDatoscom.example.rentfageinsertarYBorrarUsuario2µ•î…¿â£ê:µ•î…¿˜∑àB
-emulator-5554primary"Á
+emulator-5554primaryÖ
+|
+PruebasDePreferenciascom.example.rentfageguardarYLeerEstadoSesion2ÂÖó…ÄíÜˆ:ÊÖó…Äè¸RB
+emulator-5554primary"Í
 
-logcatandroid—
-ŒC:\Users\quint\AndroidStudioProjects\Rentfage-Android-App3\app\build\outputs\androidTest-results\connected\debug\Pixel_8(AVD) - 16\logcat-com.example.rentfage.PruebasDeBaseDeDatos-insertarYBorrarUsuario.txt"Ø
+logcatandroid‘
+—C:\Users\quint\AndroidStudioProjects\Rentfage-Android-App3\app\build\outputs\androidTest-results\connected\debug\Pixel_8(AVD) - 16\logcat-com.example.rentfage.PruebasDePreferencias-guardarYLeerEstadoSesion.txt"Ø
 
 device-infoandroidî
 ëC:\Users\quint\AndroidStudioProjects\Rentfage-Android-App3\app\build\outputs\androidTest-results\connected\debug\Pixel_8(AVD) - 16\device-info.pb"∞
@@ -15,13 +15,13 @@ z
 äC:\Users\quint\AndroidStudioProjects\Rentfage-Android-App3\app\build\outputs\androidTest-results\connected\debug\Pixel_8(AVD) - 16\meminfo"∞
 
 device-info.cpuinfoandroidç
-äC:\Users\quint\AndroidStudioProjects\Rentfage-Android-App3\app\build\outputs\androidTest-results\connected\debug\Pixel_8(AVD) - 16\cpuinfoä
-
-PruebasDeBaseDeDatoscom.example.rentfageescribirUsuarioYLeerEnLista2µ•î…¿—¸ë:µ•î…ÄÒßïB
-emulator-5554primary"Ï
+äC:\Users\quint\AndroidStudioProjects\Rentfage-Android-App3\app\build\outputs\androidTest-results\connected\debug\Pixel_8(AVD) - 16\cpuinfoÄ
+y
+PruebasDePreferenciascom.example.rentfageguardarYLeerRolUsuario2ÊÖó…¿àÏ_:ÊÖó…¿™ÅqB
+emulator-5554primary"Ë
 
-logcatandroid÷
-”C:\Users\quint\AndroidStudioProjects\Rentfage-Android-App3\app\build\outputs\androidTest-results\connected\debug\Pixel_8(AVD) - 16\logcat-com.example.rentfage.PruebasDeBaseDeDatos-escribirUsuarioYLeerEnLista.txt"Ø
+logcatandroid“
+œC:\Users\quint\AndroidStudioProjects\Rentfage-Android-App3\app\build\outputs\androidTest-results\connected\debug\Pixel_8(AVD) - 16\logcat-com.example.rentfage.PruebasDePreferencias-guardarYLeerRolUsuario.txt"Ø
 
 device-infoandroidî
 ëC:\Users\quint\AndroidStudioProjects\Rentfage-Android-App3\app\build\outputs\androidTest-results\connected\debug\Pixel_8(AVD) - 16\device-info.pb"∞

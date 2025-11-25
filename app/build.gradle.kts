@@ -91,6 +91,10 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("org.robolectric:robolectric:4.13")
+
+    // LIBRERÍA AÑADIDA PARA TESTEAR LA RED (Solo para tests)
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+
     //Test de implementacion de UI
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

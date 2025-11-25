@@ -12,7 +12,7 @@ INFORMACIÓN: Configuring Android Instrumentation driver: android_instrumentatio
     }
     args_map {
       key: "class"
-      value: "com.example.rentfage.PruebasDeBaseDeDatos"
+      value: "com.example.rentfage.PruebasDePreferencias"
     }
   }
 }
@@ -41,5 +41,5 @@ INFORMACIÓN: Copying files from device to host: /sdcard/Android/media/com.examp
 INFORMACIÓN: Stop logcat streaming.
 INFORMACIÓN: Uninstalling com.example.rentfage for device emulator-5554.
 INFORMACIÓN: Uninstalling com.example.rentfage.test for device emulator-5554.
-INFORMACIÓN: Execute com.example.rentfage.PruebasDeBaseDeDatos.insertarYBorrarUsuario: PASSED
-INFORMACIÓN: Execute com.example.rentfage.PruebasDeBaseDeDatos.escribirUsuarioYLeerEnLista: PASSED
+INFORMACIÓN: Execute com.example.rentfage.PruebasDePreferencias.guardarYLeerEstadoSesion: PASSED
+INFORMACIÓN: Execute com.example.rentfage.PruebasDePreferencias.guardarYLeerRolUsuario: PASSED

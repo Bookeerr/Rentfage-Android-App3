@@ -5,7 +5,7 @@ model		: 68
 model name	: AMD Ryzen 7 7435HS
 stepping	: 1
 microcode	: 0xffffffff
-cpu MHz		: 4304.020
+cpu MHz		: 3063.003
 cache size	: 512 KB
 physical id	: 0
 siblings	: 1
@@ -33,7 +33,7 @@ model		: 68
 model name	: AMD Ryzen 7 7435HS
 stepping	: 1
 microcode	: 0xffffffff
-cpu MHz		: 4452.706
+cpu MHz		: 3062.461
 cache size	: 512 KB
 physical id	: 1
 siblings	: 1
@@ -61,7 +61,7 @@ model		: 68
 model name	: AMD Ryzen 7 7435HS
 stepping	: 1
 microcode	: 0xffffffff
-cpu MHz		: 4471.791
+cpu MHz		: 3063.502
 cache size	: 512 KB
 physical id	: 2
 siblings	: 1
@@ -89,7 +89,7 @@ model		: 68
 model name	: AMD Ryzen 7 7435HS
 stepping	: 1
 microcode	: 0xffffffff
-cpu MHz		: 4472.834
+cpu MHz		: 3064.930
 cache size	: 512 KB
 physical id	: 3
 siblings	: 1

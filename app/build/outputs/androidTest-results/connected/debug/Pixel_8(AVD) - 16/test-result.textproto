@@ -1,5 +1,5 @@
 # proto-message: google.testing.platform.proto.api.core.TestSuiteResult
-# 2025-11-25T02:21:42.840005900Z:
+# 2025-11-25T14:53:27.779268700Z:
 test_suite_meta_data {
   scheduled_test_case_count: 2
   device {
@@ -10,16 +10,16 @@ test_suite_meta_data {
 test_status: PASSED
 test_result {
   test_case {
-    test_class: "PruebasDeBaseDeDatos"
+    test_class: "PruebasDePreferencias"
     test_package: "com.example.rentfage"
-    test_method: "insertarYBorrarUsuario"
+    test_method: "guardarYLeerEstadoSesion"
     start_time {
-      seconds: 1764037301
-      nanos: 571000000
+      seconds: 1764082405
+      nanos: 516000000
     }
     end_time {
-      seconds: 1764037301
-      nanos: 823000000
+      seconds: 1764082406
+      nanos: 174000000
     }
     device {
       id: "emulator-5554"
@@ -33,7 +33,7 @@ test_result {
       namespace: "android"
     }
     source_path {
-      path: "C:\\Users\\quint\\AndroidStudioProjects\\Rentfage-Android-App3\\app\\build\\outputs\\androidTest-results\\connected\\debug\\Pixel_8(AVD) - 16\\logcat-com.example.rentfage.PruebasDeBaseDeDatos-insertarYBorrarUsuario.txt"
+      path: "C:\\Users\\quint\\AndroidStudioProjects\\Rentfage-Android-App3\\app\\build\\outputs\\androidTest-results\\connected\\debug\\Pixel_8(AVD) - 16\\logcat-com.example.rentfage.PruebasDePreferencias-guardarYLeerEstadoSesion.txt"
     }
   }
   output_artifact {
@@ -66,16 +66,16 @@ test_result {
 }
 test_result {
   test_case {
-    test_class: "PruebasDeBaseDeDatos"
+    test_class: "PruebasDePreferencias"
     test_package: "com.example.rentfage"
-    test_method: "escribirUsuarioYLeerEnLista"
+    test_method: "guardarYLeerRolUsuario"
     start_time {
-      seconds: 1764037301
-      nanos: 843000000
+      seconds: 1764082406
+      nanos: 201000000
     }
     end_time {
-      seconds: 1764037301
-      nanos: 850000000
+      seconds: 1764082406
+      nanos: 237000000
     }
     device {
       id: "emulator-5554"
@@ -89,7 +89,7 @@ test_result {
       namespace: "android"
     }
     source_path {
-      path: "C:\\Users\\quint\\AndroidStudioProjects\\Rentfage-Android-App3\\app\\build\\outputs\\androidTest-results\\connected\\debug\\Pixel_8(AVD) - 16\\logcat-com.example.rentfage.PruebasDeBaseDeDatos-escribirUsuarioYLeerEnLista.txt"
+      path: "C:\\Users\\quint\\AndroidStudioProjects\\Rentfage-Android-App3\\app\\build\\outputs\\androidTest-results\\connected\\debug\\Pixel_8(AVD) - 16\\logcat-com.example.rentfage.PruebasDePreferencias-guardarYLeerRolUsuario.txt"
     }
   }
   output_artifact {
