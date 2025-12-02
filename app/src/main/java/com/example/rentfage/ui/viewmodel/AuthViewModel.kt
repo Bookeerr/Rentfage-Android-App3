@@ -5,6 +5,7 @@ import android.util.Patterns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.rentfage.data.local.storage.UserPreferences
+import com.example.rentfage.data.repository.CasasRepository
 import com.example.rentfage.data.repository.UserRepository
 import com.example.rentfage.domain.validation.*
 import kotlinx.coroutines.delay
@@ -55,11 +56,12 @@ data class ChangePasswordUiState(
     val errorMsg: String? = null
 )
 
-// Modificamos el constructor para permitir inyectar UserPreferences (útil para tests)
+// Modificamos el constructor para inyectar CasasRepository
 class AuthViewModel(
     application: Application, 
     private val userRepository: UserRepository,
-    private val userPreferences: UserPreferences = UserPreferences(application) // Valor por defecto: el real
+    private val casasRepository: CasasRepository, // NUEVO: Para limpiar favoritos al salir
+    private val userPreferences: UserPreferences = UserPreferences(application)
 ) : AndroidViewModel(application) {
 
     companion object {
@@ -116,6 +118,7 @@ class AuthViewModel(
                     activeUserEmail = user.email
                     userPreferences.setLoggedIn(true)
                     userPreferences.saveUserRole(user.role)
+                    // Al loguear, podríamos sincronizar casas para traer favoritos del server si existiera esa lógica
                 }
                  _login.update {
                     it.copy(
@@ -144,9 +147,17 @@ class AuthViewModel(
 
     fun logout() {
         viewModelScope.launch {
+            // 1. Limpiamos sesión
             userPreferences.setLoggedIn(false)
             userPreferences.clearUserRole()
             activeUserEmail = null
+            
+            // 2. NUEVO: Limpiamos favoritos locales para que el próximo usuario no los vea
+            try {
+                casasRepository.limpiarFavoritosLocales()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

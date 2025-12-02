@@ -84,6 +84,10 @@ class CasasRepository(
     suspend fun actualizarCasa(casa: CasaEntity) {
         casaDao.actualizar(casa)
     }
+    
+    suspend fun limpiarFavoritosLocales() {
+        casaDao.resetFavoritos()
+    }
 
     suspend fun borrarCasa(casa: CasaEntity) {
         casaDao.borrar(casa)

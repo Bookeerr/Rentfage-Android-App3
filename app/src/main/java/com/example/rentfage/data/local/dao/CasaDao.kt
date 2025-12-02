@@ -38,6 +38,10 @@ interface CasaDao {
 
     @Update
     suspend fun actualizar(casa: CasaEntity)
+    
+    // NUEVO: Función para resetear todos los favoritos a false
+    @Query("UPDATE casas SET isFavorite = 0")
+    suspend fun resetFavoritos()
 
     @Delete
     suspend fun borrar(casa: CasaEntity)
@@ -45,4 +49,3 @@ interface CasaDao {
     @Query("DELETE FROM casas")
     suspend fun borrarTodas()
 }
-

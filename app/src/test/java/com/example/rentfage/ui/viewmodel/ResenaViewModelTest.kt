@@ -78,4 +78,17 @@ class ResenaViewModelTest {
         // 2. Verificamos que el campo de texto se limpió
         assertEquals("", viewModel.uiState.value.comentario)
     }
+
+    @Test
+    fun enviarresena() {
+        coEvery { repository.enviarResena(any(), any()) } returns Unit
+        viewModel.onComentarioChange("Comentario de prueba")
+        viewModel.enviarResena(1)
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+        coVerify {
+            repository.enviarResena(1, "Comentario de prueba")
+        }
+        assertTrue(viewModel.uiState.value.saveSuccess)
+
+    }
 }

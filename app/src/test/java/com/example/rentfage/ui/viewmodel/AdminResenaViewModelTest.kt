@@ -2,6 +2,7 @@ package com.example.rentfage.ui.viewmodel
 
 import com.example.rentfage.data.local.entity.ResenaEntidad
 import com.example.rentfage.data.repository.ResenaRepositorio
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope

@@ -68,7 +68,9 @@ fun AppNavGraph(navController: NavHostController) {
     
     val casasViewModel: CasasViewModel = viewModel(factory = CasasViewModelFactory(casasRepository))
     val userViewModel: UserViewModel = viewModel(factory = UserViewModelFactory(userRepository))
-    val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(application, userRepository))
+    // CORREGIDO: Inyectamos casasRepository en AuthViewModel para poder borrar favoritos al salir
+    val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(application, userRepository, casasRepository))
+    
     val resenaViewModel: ResenaViewModel = viewModel(factory = ResenaViewModelFactory(resenaRepository))
     val adminResenaViewModel: AdminResenaViewModel = viewModel(factory = AdminResenaViewModelFactory(resenaRepository)) 
 
