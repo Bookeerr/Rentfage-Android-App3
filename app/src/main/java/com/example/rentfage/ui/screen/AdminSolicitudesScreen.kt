@@ -110,7 +110,8 @@ private fun AdminSolicitudCard(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Usuario: ${solicitud.usuarioEmail}", style = MaterialTheme.typography.bodyMedium)
-            Text(text = "Propiedad: ${solicitud.casa?.address ?: "Propiedad desconocida"}", style = MaterialTheme.typography.bodyMedium)
+            // CORREGIDO: Usamos el campo nuevo 'nombreCasa' en lugar de la dirección
+            Text(text = "Propiedad: ${solicitud.nombreCasa}", style = MaterialTheme.typography.bodyMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "Fecha: ${solicitud.fecha}", style = MaterialTheme.typography.bodySmall)
             Text(text = "Estado: ${solicitud.estado.name}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
@@ -135,10 +136,11 @@ private fun resourceUri(resourceId: Int): String {
 @Composable
 fun AdminSolicitudesScreenPreview() {
     val casaDeEjemplo = CasaEntity(id = 1, price = "UF 32.500", address = "Lo Barnechea, sector La Dehesa", details = "4 hab | 3 baños | 580 m²", imageUri = resourceUri(R.drawable.casa1), latitude = 0.0, longitude = 0.0, isFavorite = false)
+    // CORREGIDO: Se añade el parámetro 'nombreCasa' que faltaba
     val solicitudesDeEjemplo = listOf(
-        SolicitudUi(1, "cliente1@test.com", casaDeEjemplo, "15/05/2024", EstadoSolicitud.Pendiente),
-        SolicitudUi(2, "cliente2@test.com", casaDeEjemplo, "14/05/2024", EstadoSolicitud.Aprobada),
-        SolicitudUi(3, "cliente3@test.com", casaDeEjemplo, "13/05/2024", EstadoSolicitud.Pendiente)
+        SolicitudUi(1, "cliente1@test.com", casaDeEjemplo, "Casa en La Dehesa", "15/05/2024", EstadoSolicitud.Pendiente),
+        SolicitudUi(2, "cliente2@test.com", casaDeEjemplo, "Casa en La Dehesa", "14/05/2024", EstadoSolicitud.Aprobada),
+        SolicitudUi(3, "cliente3@test.com", casaDeEjemplo, "Casa en La Dehesa", "13/05/2024", EstadoSolicitud.Pendiente)
     )
 
     Column(

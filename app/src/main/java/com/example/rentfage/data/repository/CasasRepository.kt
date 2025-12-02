@@ -6,8 +6,14 @@ import com.example.rentfage.data.remote.CasasApiService
 import com.example.rentfage.data.remote.RemoteModule
 import com.example.rentfage.data.remote.dto.CasaDto
 import com.example.rentfage.data.remote.dto.toEntity
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
+import java.io.File
 
 // Repositorio para manejar los datos de las casas.
 class CasasRepository(
@@ -44,8 +50,8 @@ class CasasRepository(
             casaDao.insertarTodas(entities)
         }
 
-    // --- ESCRITURA (CONEXIÓN A MICROSERVICIO) ---
-    suspend fun insertarCasa(casa: CasaEntity) {
+    // --- ESCRITURA (CONEXIÓN A MICROSERVICIO - MULTIPART) ---
+    suspend fun insertarCasa(casa: CasaEntity, imageFile: File?) {
         // 1. Intentamos enviar al servidor PRIMERO
         try {
             // Limpiamos el precio para que sea un número
@@ -65,7 +71,20 @@ class CasasRepository(
                 propietarioId = 1 // ID de admin o usuario por defecto
             )
 
-            val response = casasApi.crearCasa(nuevoDto)
+            val gson = Gson()
+            val jsonString = gson.toJson(nuevoDto)
+            val jsonPart = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
+
+            val imagePart = if (imageFile != null && imageFile.exists()) {
+                val requestFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
+                MultipartBody.Part.createFormData("imagen", imageFile.name, requestFile)
+            } else {
+                // Envía una parte vacía si no hay imagen
+                val emptyBody = ByteArray(0).toRequestBody("image/*".toMediaTypeOrNull())
+                 MultipartBody.Part.createFormData("imagen", "", emptyBody)
+            }
+
+            val response = casasApi.crearCasa(imagePart, jsonPart)
             
             if (response.isSuccessful) {
                 // Si se guardó en el servidor, sincronizamos para tenerla oficial
@@ -77,7 +96,6 @@ class CasasRepository(
         }
 
         // 2. Si falló el servidor o no hay internet, guardamos en LOCAL
-        // (Advertencia: Esto se borrará en la próxima sincronización exitosa si no se subió)
         casaDao.insertar(casa)
     }
 

@@ -30,15 +30,15 @@ fun CasaDto.toEntity(isFavorite: Boolean = false): CasaEntity {
         append("${habitaciones} hab · ${banos} baños · ${area} m² · $tipo")
     }.trim()
 
+    // CORREGIDO: Generamos la URL de la imagen dinámicamente
     return CasaEntity(
         id = id?.toInt() ?: 0,
         price = priceLabel,
         address = direccion,
         details = description,
-        imageUri = "",
+        imageUri = "http://10.0.2.2:8082/propiedades/${id ?: 0}/imagen",
         latitude = 0.0,
         longitude = 0.0,
         isFavorite = isFavorite
     )
 }
-

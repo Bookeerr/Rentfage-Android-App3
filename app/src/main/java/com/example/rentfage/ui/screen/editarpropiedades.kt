@@ -25,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,9 @@ fun AddEditPropertyScreenVm(
     casasViewModel: CasasViewModel
 ) {
     val uiState by casasViewModel.addEditState.collectAsStateWithLifecycle()
+    
+    // CORRECCIÓN: Obtenemos el contexto para poder leer el archivo de la imagen
+    val context = LocalContext.current
 
     LaunchedEffect(key1 = casaId) {
         if (casaId != null) {
@@ -71,7 +75,8 @@ fun AddEditPropertyScreenVm(
         onLatitudeChange = casasViewModel::onLatitudeChange,
         onLongitudeChange = casasViewModel::onLongitudeChange,
         onImageChange = { casasViewModel.onImageUriChange(it?.toString()) },
-        onSaveClick = { casasViewModel.saveProperty(casaId) }
+        // CORRECCIÓN: Pasamos el contexto aquí
+        onSaveClick = { casasViewModel.saveProperty(casaId, context) }
     )
 }
 
@@ -126,7 +131,7 @@ private fun AddEditPropertyContent(
 
             OutlinedTextField(value = address, onValueChange = onAddressChange, label = { Text("Dirección") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             
-            // Campo Precio: con teclado numérico
+            // Campo Precio
             OutlinedTextField(
                 value = price, 
                 onValueChange = onPriceChange, 
@@ -136,16 +141,16 @@ private fun AddEditPropertyContent(
                 singleLine = true
             )
 
-            // Campo Detalles: con texto de ayuda mejorado
+            // Campo Detalles
             OutlinedTextField(
                 value = details, 
                 onValueChange = onDetailsChange, 
                 label = { Text("Detalles (ej: 4 hab | 2 baños | Descripción)") }, 
                 modifier = Modifier.fillMaxWidth(),
-                maxLines = 4 // Permitir varias líneas para la descripción
+                maxLines = 4 
             )
             
-            // Campos Lat/Long: con teclado numérico decimal
+            // Campos Lat/Long
             OutlinedTextField(
                 value = latitude, 
                 onValueChange = onLatitudeChange, 

@@ -13,7 +13,9 @@ data class CompraDto(
     val monto: Double,
     @SerializedName("fecha_compra")
     val fechaCompra: String? = null,
-    val estado: String
+    val estado: String,
+    @SerializedName("titulo_propiedad") // NUEVO: Nombre de la casa desde el servidor
+    val tituloPropiedad: String? = null
 )
 
 fun CompraDto.toSolicitudEntity(usuarioEmail: String = ""): SolicitudEntity =
@@ -23,6 +25,6 @@ fun CompraDto.toSolicitudEntity(usuarioEmail: String = ""): SolicitudEntity =
         usuarioEmail = usuarioEmail,
         casaId = idPropiedad.toInt(),
         fecha = fechaCompra ?: "",
-        estado = estado
+        estado = estado,
+        tituloPropiedad = tituloPropiedad // Guardamos el título
     )
-

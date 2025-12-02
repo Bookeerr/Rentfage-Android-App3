@@ -46,7 +46,7 @@ public final class SolicitudDao_Impl implements SolicitudDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `solicitudes` (`id`,`usuarioId`,`usuarioEmail`,`casaId`,`fecha`,`estado`) VALUES (nullif(?, 0),?,?,?,?,?)";
+        return "INSERT OR REPLACE INTO `solicitudes` (`id`,`usuarioId`,`usuarioEmail`,`casaId`,`fecha`,`estado`,`tituloPropiedad`) VALUES (nullif(?, 0),?,?,?,?,?,?)";
       }
 
       @Override
@@ -58,6 +58,11 @@ public final class SolicitudDao_Impl implements SolicitudDao {
         statement.bindLong(4, entity.getCasaId());
         statement.bindString(5, entity.getFecha());
         statement.bindString(6, entity.getEstado());
+        if (entity.getTituloPropiedad() == null) {
+          statement.bindNull(7);
+        } else {
+          statement.bindString(7, entity.getTituloPropiedad());
+        }
       }
     };
     this.__preparedStmtOfActualizarEstado = new SharedSQLiteStatement(__db) {
@@ -218,6 +223,7 @@ public final class SolicitudDao_Impl implements SolicitudDao {
           final int _cursorIndexOfCasaId = CursorUtil.getColumnIndexOrThrow(_cursor, "casaId");
           final int _cursorIndexOfFecha = CursorUtil.getColumnIndexOrThrow(_cursor, "fecha");
           final int _cursorIndexOfEstado = CursorUtil.getColumnIndexOrThrow(_cursor, "estado");
+          final int _cursorIndexOfTituloPropiedad = CursorUtil.getColumnIndexOrThrow(_cursor, "tituloPropiedad");
           final List<SolicitudEntity> _result = new ArrayList<SolicitudEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
             final SolicitudEntity _item;
@@ -233,7 +239,13 @@ public final class SolicitudDao_Impl implements SolicitudDao {
             _tmpFecha = _cursor.getString(_cursorIndexOfFecha);
             final String _tmpEstado;
             _tmpEstado = _cursor.getString(_cursorIndexOfEstado);
-            _item = new SolicitudEntity(_tmpId,_tmpUsuarioId,_tmpUsuarioEmail,_tmpCasaId,_tmpFecha,_tmpEstado);
+            final String _tmpTituloPropiedad;
+            if (_cursor.isNull(_cursorIndexOfTituloPropiedad)) {
+              _tmpTituloPropiedad = null;
+            } else {
+              _tmpTituloPropiedad = _cursor.getString(_cursorIndexOfTituloPropiedad);
+            }
+            _item = new SolicitudEntity(_tmpId,_tmpUsuarioId,_tmpUsuarioEmail,_tmpCasaId,_tmpFecha,_tmpEstado,_tmpTituloPropiedad);
             _result.add(_item);
           }
           return _result;
@@ -265,6 +277,7 @@ public final class SolicitudDao_Impl implements SolicitudDao {
           final int _cursorIndexOfCasaId = CursorUtil.getColumnIndexOrThrow(_cursor, "casaId");
           final int _cursorIndexOfFecha = CursorUtil.getColumnIndexOrThrow(_cursor, "fecha");
           final int _cursorIndexOfEstado = CursorUtil.getColumnIndexOrThrow(_cursor, "estado");
+          final int _cursorIndexOfTituloPropiedad = CursorUtil.getColumnIndexOrThrow(_cursor, "tituloPropiedad");
           final List<SolicitudEntity> _result = new ArrayList<SolicitudEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
             final SolicitudEntity _item;
@@ -280,7 +293,13 @@ public final class SolicitudDao_Impl implements SolicitudDao {
             _tmpFecha = _cursor.getString(_cursorIndexOfFecha);
             final String _tmpEstado;
             _tmpEstado = _cursor.getString(_cursorIndexOfEstado);
-            _item = new SolicitudEntity(_tmpId,_tmpUsuarioId,_tmpUsuarioEmail,_tmpCasaId,_tmpFecha,_tmpEstado);
+            final String _tmpTituloPropiedad;
+            if (_cursor.isNull(_cursorIndexOfTituloPropiedad)) {
+              _tmpTituloPropiedad = null;
+            } else {
+              _tmpTituloPropiedad = _cursor.getString(_cursorIndexOfTituloPropiedad);
+            }
+            _item = new SolicitudEntity(_tmpId,_tmpUsuarioId,_tmpUsuarioEmail,_tmpCasaId,_tmpFecha,_tmpEstado,_tmpTituloPropiedad);
             _result.add(_item);
           }
           return _result;

@@ -1,11 +1,9 @@
 package com.example.rentfage.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.rentfage.data.local.entity.CasaEntity
+import com.example.rentfage.data.local.entity.SolicitudEntity
 import com.example.rentfage.data.repository.CasasRepository
 import com.example.rentfage.data.repository.ComprasRepository
 import com.example.rentfage.data.repository.UserRepository
@@ -27,6 +25,7 @@ data class SolicitudUi(
     val id: Int,
     val usuarioEmail: String,
     val casa: CasaEntity?,
+    val nombreCasa: String,
     val fecha: String,
     val estado: EstadoSolicitud
 )
@@ -69,16 +68,18 @@ class HistorialViewModel(
 
         combine(flujoSolicitudes, casasRepository.todasLasCasas) { solicitudes, casas ->
             solicitudes.map { solicitud ->
-                // Buscamos la casa en la lista local
                 var casaDetalle = casas.find { it.id == solicitud.casaId }
 
-                // MEJORA: Si no encontramos la casa (porque no se ha sincronizado o se borró),
-                // creamos una "Casa Temporal" para que la tarjeta no salga vacía.
+                val nombrePropiedad = solicitud.tituloPropiedad
+                    ?: casaDetalle?.details?.lines()?.firstOrNull()
+                    ?: casaDetalle?.address
+                    ?: "Propiedad #${solicitud.casaId}"
+
                 if (casaDetalle == null) {
                     casaDetalle = CasaEntity(
                         id = solicitud.casaId,
                         price = "Consultar",
-                        address = "Casa #${solicitud.casaId}", // Mostramos el ID al menos
+                        address = solicitud.tituloPropiedad ?: "Casa #${solicitud.casaId}",
                         details = "Detalles no disponibles offline",
                         imageUri = "",
                         latitude = 0.0,
@@ -90,6 +91,7 @@ class HistorialViewModel(
                     id = solicitud.id,
                     usuarioEmail = solicitud.usuarioEmail,
                     casa = casaDetalle,
+                    nombreCasa = nombrePropiedad,
                     fecha = solicitud.fecha,
                     estado = runCatching { EstadoSolicitud.valueOf(solicitud.estado) }
                         .getOrElse { EstadoSolicitud.Pendiente }

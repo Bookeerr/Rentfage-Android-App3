@@ -1,9 +1,12 @@
 package com.example.rentfage.ui.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.rentfage.data.local.entity.CasaEntity
 import com.example.rentfage.data.repository.CasasRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +16,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 // --- ESTADO PARA LA LISTA DE CASAS ---
 data class CasasUiState(
@@ -120,11 +125,11 @@ class CasasViewModel(private val casasRepository: CasasRepository) : ViewModel()
         _addEditState.update { it.copy(imageUri = newUri, canSubmit = checkCanSubmit(it.copy(imageUri = newUri))) }
     }
 
-    fun saveProperty(id: Int?) {
+    fun saveProperty(id: Int?, context: Context) {
         // CORRECCIÓN: Validar antes de guardar
         if (!canSubmit()) return
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _addEditState.update { it.copy(isSaving = true) }
 
             val state = _addEditState.value
@@ -140,14 +145,47 @@ class CasasViewModel(private val casasRepository: CasasRepository) : ViewModel()
                 imageUri = state.imageUri ?: ""
             )
 
-            if (id == null) {
-                casasRepository.insertarCasa(casa)
+            // Convertir URI a File si es necesario
+            val imageFile: File? = if (!state.imageUri.isNullOrBlank()) {
+                try {
+                    val uri = Uri.parse(state.imageUri)
+                    getFileFromUri(context, uri)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
             } else {
+                null
+            }
+
+            if (id == null) {
+                casasRepository.insertarCasa(casa, imageFile)
+            } else {
+                // Para actualizar, por ahora no actualizamos foto en backend en este flujo,
+                // pero si fuera necesario se podría añadir.
                 casasRepository.actualizarCasa(casa)
             }
 
             sincronizar()
             _addEditState.update { it.copy(isSaving = false, saveSuccess = true) }
+        }
+    }
+    
+    private fun getFileFromUri(context: Context, uri: Uri): File? {
+        return try {
+            val contentResolver = context.contentResolver
+            val inputStream = contentResolver.openInputStream(uri) ?: return null
+            val tempFile = File.createTempFile("upload", ".jpg", context.cacheDir)
+            val outputStream = FileOutputStream(tempFile)
+            inputStream.use { input ->
+                outputStream.use { output ->
+                    input.copyTo(output)
+                }
+            }
+            tempFile
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 

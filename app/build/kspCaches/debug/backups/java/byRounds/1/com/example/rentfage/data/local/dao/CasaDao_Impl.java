@@ -41,6 +41,8 @@ public final class CasaDao_Impl implements CasaDao {
 
   private final EntityDeletionOrUpdateAdapter<CasaEntity> __updateAdapterOfCasaEntity;
 
+  private final SharedSQLiteStatement __preparedStmtOfResetFavoritos;
+
   private final SharedSQLiteStatement __preparedStmtOfBorrarTodas;
 
   public CasaDao_Impl(@NonNull final RoomDatabase __db) {
@@ -99,6 +101,14 @@ public final class CasaDao_Impl implements CasaDao {
         final int _tmp = entity.isFavorite() ? 1 : 0;
         statement.bindLong(8, _tmp);
         statement.bindLong(9, entity.getId());
+      }
+    };
+    this.__preparedStmtOfResetFavoritos = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "UPDATE casas SET isFavorite = 0";
+        return _query;
       }
     };
     this.__preparedStmtOfBorrarTodas = new SharedSQLiteStatement(__db) {
@@ -179,6 +189,29 @@ public final class CasaDao_Impl implements CasaDao {
           return Unit.INSTANCE;
         } finally {
           __db.endTransaction();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object resetFavoritos(final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfResetFavoritos.acquire();
+        try {
+          __db.beginTransaction();
+          try {
+            _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return Unit.INSTANCE;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfResetFavoritos.release(_stmt);
         }
       }
     }, $completion);

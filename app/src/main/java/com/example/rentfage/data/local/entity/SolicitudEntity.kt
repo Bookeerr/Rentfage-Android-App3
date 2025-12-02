@@ -11,6 +11,6 @@ data class SolicitudEntity(
     val usuarioEmail: String,
     val casaId: Int,
     val fecha: String,
-    val estado: String = "Pendiente"
+    val estado: String = "Pendiente",
+    val tituloPropiedad: String? = null // NUEVO CAMPO: Nombre de la casa
 )
-

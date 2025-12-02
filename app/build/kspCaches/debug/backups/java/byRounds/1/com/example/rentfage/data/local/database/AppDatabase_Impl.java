@@ -51,9 +51,9 @@ public final class AppDatabase_Impl extends AppDatabase {
         db.execSQL("CREATE TABLE IF NOT EXISTS `users` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `email` TEXT NOT NULL, `phone` TEXT NOT NULL, `pass` TEXT NOT NULL, `role` TEXT NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `casas` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `price` TEXT NOT NULL, `address` TEXT NOT NULL, `details` TEXT NOT NULL, `imageUri` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `isFavorite` INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `resenas` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `propiedadId` INTEGER NOT NULL, `calificacion` INTEGER NOT NULL, `comentario` TEXT NOT NULL, `fechaCreacion` INTEGER NOT NULL)");
-        db.execSQL("CREATE TABLE IF NOT EXISTS `solicitudes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `usuarioId` INTEGER NOT NULL, `usuarioEmail` TEXT NOT NULL, `casaId` INTEGER NOT NULL, `fecha` TEXT NOT NULL, `estado` TEXT NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `solicitudes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `usuarioId` INTEGER NOT NULL, `usuarioEmail` TEXT NOT NULL, `casaId` INTEGER NOT NULL, `fecha` TEXT NOT NULL, `estado` TEXT NOT NULL, `tituloPropiedad` TEXT)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1f5ebc149d7d655c844d30edcce65626')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3c69085745e11c0d44170e5ee5a3eadd')");
       }
 
       @Override
@@ -155,13 +155,14 @@ public final class AppDatabase_Impl extends AppDatabase {
                   + " Expected:\n" + _infoResenas + "\n"
                   + " Found:\n" + _existingResenas);
         }
-        final HashMap<String, TableInfo.Column> _columnsSolicitudes = new HashMap<String, TableInfo.Column>(6);
+        final HashMap<String, TableInfo.Column> _columnsSolicitudes = new HashMap<String, TableInfo.Column>(7);
         _columnsSolicitudes.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsSolicitudes.put("usuarioId", new TableInfo.Column("usuarioId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsSolicitudes.put("usuarioEmail", new TableInfo.Column("usuarioEmail", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsSolicitudes.put("casaId", new TableInfo.Column("casaId", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsSolicitudes.put("fecha", new TableInfo.Column("fecha", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsSolicitudes.put("estado", new TableInfo.Column("estado", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsSolicitudes.put("tituloPropiedad", new TableInfo.Column("tituloPropiedad", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysSolicitudes = new HashSet<TableInfo.ForeignKey>(0);
         final HashSet<TableInfo.Index> _indicesSolicitudes = new HashSet<TableInfo.Index>(0);
         final TableInfo _infoSolicitudes = new TableInfo("solicitudes", _columnsSolicitudes, _foreignKeysSolicitudes, _indicesSolicitudes);
@@ -173,7 +174,7 @@ public final class AppDatabase_Impl extends AppDatabase {
         }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "1f5ebc149d7d655c844d30edcce65626", "207f3e1bab8e09a170da8dad5d76e527");
+    }, "3c69085745e11c0d44170e5ee5a3eadd", "738c91e3c357c62412c4c366d7fd0b75");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;

@@ -133,7 +133,7 @@ fun SolicitudCard(solicitud: SolicitudUi) {
 
             Column {
                 Text(
-                    text = solicitud.casa?.address ?: "Dirección desconocida",
+                    text = solicitud.nombreCasa,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -170,8 +170,8 @@ private fun resourceUri(resourceId: Int): String {
 fun HistorialScreenPreview() {
     val casaDeEjemplo = CasaEntity(id = 1, price = "UF 32.500", address = "Lo Barnechea, sector La Dehesa", details = "4 hab | 3 baños | 580 m²", imageUri = resourceUri(R.drawable.casa1), latitude = 0.0, longitude = 0.0, isFavorite = false)
     val solicitudesDeEjemplo = listOf(
-        SolicitudUi(1, "cliente1@test.com", casaDeEjemplo, "15/05/2024", EstadoSolicitud.Pendiente),
-        SolicitudUi(2, "cliente1@test.com", casaDeEjemplo, "14/05/2024", EstadoSolicitud.Aprobada)
+        SolicitudUi(1, "cliente1@test.com", casaDeEjemplo, "Casa en La Dehesa", "15/05/2024", EstadoSolicitud.Pendiente),
+        SolicitudUi(2, "cliente1@test.com", casaDeEjemplo, "Casa en La Dehesa", "14/05/2024", EstadoSolicitud.Aprobada)
     )
 
     Column(

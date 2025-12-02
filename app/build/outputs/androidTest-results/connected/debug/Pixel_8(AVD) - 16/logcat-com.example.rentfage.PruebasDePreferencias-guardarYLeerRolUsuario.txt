@@ -1,2 +1,0 @@
-11-25 20:47:49.176 21041 21059 I TestRunner: started: guardarYLeerRolUsuario(com.example.rentfage.PruebasDePreferencias)
-11-25 20:47:49.206 21041 21059 I TestRunner: finished: guardarYLeerRolUsuario(com.example.rentfage.PruebasDePreferencias)
