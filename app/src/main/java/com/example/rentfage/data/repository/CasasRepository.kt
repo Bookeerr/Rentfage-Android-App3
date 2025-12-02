@@ -30,6 +30,9 @@ class CasasRepository(
     // --- REMOTO ---
     suspend fun sincronizarCasas(): Result<Unit> =
         runCatching {
+            // CORRECCIÓN: Borramos primero para evitar datos viejos si la sincro falla
+            casaDao.borrarTodas()
+
             val response = casasApi.obtenerPropiedades()
             if (!response.isSuccessful) {
                 throw HttpException(response)
@@ -45,8 +48,8 @@ class CasasRepository(
                     entity
                 }
             }
-
-            casaDao.borrarTodas()
+            
+            // Volvemos a insertar los datos nuevos
             casaDao.insertarTodas(entities)
         }
 
@@ -54,21 +57,19 @@ class CasasRepository(
     suspend fun insertarCasa(casa: CasaEntity, imageFile: File?) {
         // 1. Intentamos enviar al servidor PRIMERO
         try {
-            // Limpiamos el precio para que sea un número
             val precioDouble = casa.price.replace("S/", "").replace(" ", "").toDoubleOrNull() ?: 0.0
             
-            // Creamos un DTO con los datos que tenemos y valores por defecto para los que faltan
             val nuevoDto = CasaDto(
-                titulo = "Casa en ${casa.address}", // Título por defecto
+                titulo = "Casa en ${casa.address}", 
                 descripcion = casa.details,
                 direccion = casa.address,
                 precio = precioDouble,
-                habitaciones = 2, // Valor por defecto
-                banos = 1,        // Valor por defecto
-                area = 60.0,      // Valor por defecto
-                tipo = "Casa",    // Valor por defecto
+                habitaciones = 2, 
+                banos = 1,        
+                area = 60.0,      
+                tipo = "Casa",    
                 estado = "Disponible",
-                propietarioId = 1 // ID de admin o usuario por defecto
+                propietarioId = 1 
             )
 
             val gson = Gson()
@@ -79,7 +80,6 @@ class CasasRepository(
                 val requestFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
                 MultipartBody.Part.createFormData("imagen", imageFile.name, requestFile)
             } else {
-                // Envía una parte vacía si no hay imagen
                 val emptyBody = ByteArray(0).toRequestBody("image/*".toMediaTypeOrNull())
                  MultipartBody.Part.createFormData("imagen", "", emptyBody)
             }
@@ -87,7 +87,6 @@ class CasasRepository(
             val response = casasApi.crearCasa(imagePart, jsonPart)
             
             if (response.isSuccessful) {
-                // Si se guardó en el servidor, sincronizamos para tenerla oficial
                 sincronizarCasas()
                 return 
             }
@@ -95,7 +94,7 @@ class CasasRepository(
             e.printStackTrace()
         }
 
-        // 2. Si falló el servidor o no hay internet, guardamos en LOCAL
+        // 2. Si falló el servidor, guardamos en LOCAL
         casaDao.insertar(casa)
     }
 
