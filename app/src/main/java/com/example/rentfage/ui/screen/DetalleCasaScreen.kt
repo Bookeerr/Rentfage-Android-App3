@@ -49,6 +49,11 @@ fun DetalleCasaScreenVm(
             onGoHome = onGoHome,
             onAddSolicitud = { historialViewModel.addSolicitud(casa) }
         )
+    } else {
+        // Opcional: Mostrar un indicador de carga o un mensaje de error si la casa no se encuentra
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
     }
 }
 
@@ -160,9 +165,10 @@ private fun DetalleCasaContent(
             confirmButton = {
                 Button(onClick = {
                     scope.launch {
+                        // AQUÍ ESTÁ LA MAGIA: Llamamos a la función para añadir la solicitud
                         onAddSolicitud()
                         showConfirmationDialog = false
-                        delay(300)
+                        delay(300) // Pequeña pausa para que la UI se sienta fluida
                         showPurchaseSummary = true
                     }
                 }) { Text("Sí, comprar") }

@@ -3,9 +3,11 @@ package com.example.rentfage.data.repository
 import com.example.rentfage.data.local.dao.SolicitudDao
 import com.example.rentfage.data.local.dao.UserDao
 import com.example.rentfage.data.local.entity.SolicitudEntity
+import com.example.rentfage.data.remote.CompraRequest
 import com.example.rentfage.data.remote.ComprasApiService
 import com.example.rentfage.data.remote.RemoteModule
 import com.example.rentfage.data.remote.dto.toSolicitudEntity
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import retrofit2.HttpException
 import java.text.SimpleDateFormat
@@ -27,9 +29,8 @@ class ComprasRepository(
         runCatching {
             val response = comprasApi.obtenerComprasPorUsuario(userId)
             
-            // CORRECCIÓN CRÍTICA: Si el servidor dice 404, significa "Lista Vacía", NO error.
             if (response.code() == 404) {
-                solicitudDao.borrarPorUsuario(email)
+                // No hacemos nada, dejamos las solicitudes locales intactas
                 return@runCatching
             }
 
@@ -38,12 +39,10 @@ class ComprasRepository(
             val entities = response.body().orEmpty()
                 .map { it.toSolicitudEntity(email.ifBlank { "Usuario #${it.idUsuario}" }) }
 
-            // Siempre actualizamos la base de datos local para que sea un espejo del servidor
             if (entities.isNotEmpty()) {
                 solicitudDao.borrarPorUsuario(email)
                 solicitudDao.insertAll(entities)
             } else {
-                // Si el servidor devolvió 200 OK pero lista vacía
                 solicitudDao.borrarPorUsuario(email)
             }
         }
@@ -52,7 +51,6 @@ class ComprasRepository(
         runCatching {
             val response = comprasApi.obtenerCompras()
             
-            // Manejo de 404 o 204 como lista vacía
             if (response.code() == 404 || response.code() == 204) {
                 solicitudDao.borrarTodas()
                 return@runCatching
@@ -75,40 +73,33 @@ class ComprasRepository(
         casaId: Long,
         userEmail: String
     ): Result<Unit> = runCatching {
-        // 1. PERSISTENCIA REAL: Enviamos la solicitud al microservicio
-        val response = comprasApi.crearCompra(userId, casaId)
-        
-        // OPCIÓN A IMPLEMENTADA: Ignoramos el 404 al crear (si el servidor devuelve eso por algún motivo)
-        // o simplemente si falla, lanzamos excepción, pero el 404 de 'obtener' ya lo manejamos arriba.
+        // 1. Enviamos la solicitud al microservicio
+        val request = CompraRequest(userId, casaId)
+        val response = comprasApi.crearCompra(request)
         
         if (!response.isSuccessful) {
-            // A veces el servidor devuelve 201 con un body raro, o un 200.
-            // Si devuelve 404 aquí sería raro, pero lanzamos error.
             throw HttpException(response)
         }
 
-        // 2. VISIBILIDAD INMEDIATA: Insertamos en local
+        // 2. Insertamos en local para visibilidad inmediata
         val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        
         val nuevaSolicitudLocal = SolicitudEntity(
-            id = 0, // ID temporal
             usuarioId = userId,
             usuarioEmail = userEmail,
             casaId = casaId.toInt(),
             fecha = fechaActual,
-            estado = "Pendiente"
+            estado = "Pendiente",
+            tituloPropiedad = null // Se llenará al sincronizar
         )
-        
         solicitudDao.upsert(nuevaSolicitudLocal)
-
-        // 3. SINCRONIZACIÓN: Intentamos confirmar con el servidor.
-        // Aquí es donde el 404 de 'obtenerComprasPorUsuario' podría haber molestado antes.
-        // Pero con el arreglo de arriba (en sincronizarSolicitudes), ya no molestará.
+        
+        // 3. Sincronizamos después de un delay para dar tiempo al backend
+        delay(500) // Esperamos medio segundo
         try {
-            sincronizarSolicitudes(userEmail, userId)
+            sincronizarSolicitudes(userEmail, userId).getOrElse {
+                // Si falla (incluyendo 404), no pasa nada. El usuario ya ve su solicitud local.
+            }
         } catch (e: Exception) {
-            // Si falla la sincro (por ejemplo, el servidor tardó en indexar), no pasa nada.
-            // El usuario ya ve su solicitud local.
             e.printStackTrace()
         }
     }

@@ -105,11 +105,15 @@ class HistorialViewModel(
 
         viewModelScope.launch {
             if (isAdmin) {
-                comprasRepository.sincronizarTodas()
+                comprasRepository.sincronizarTodas().getOrElse {
+                    // No hacemos nada si falla, para no molestar al usuario
+                }
             } else if (currentUserEmail != null) {
                 val usuario = userRepository.getUserByEmail(currentUserEmail)
                 val userId = usuario?.id ?: 0L
-                comprasRepository.sincronizarSolicitudes(currentUserEmail, userId)
+                comprasRepository.sincronizarSolicitudes(currentUserEmail, userId).getOrElse {
+                    // No hacemos nada si falla (ej. 404), el usuario ve los datos locales
+                }
             }
         }
     }
