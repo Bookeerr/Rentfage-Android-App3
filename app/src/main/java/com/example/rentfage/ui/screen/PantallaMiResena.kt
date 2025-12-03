@@ -63,6 +63,15 @@ fun PantallaMiResena(
         }
     }
 
+    // Manejo de errores
+    val errorMessage = uiState.errorMsg
+    LaunchedEffect(errorMessage) {
+        if (errorMessage != null) {
+            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+            resenaViewModel.resetSaveStatus()
+        }
+    }
+
     Scaffold {
         Column(
             modifier = Modifier

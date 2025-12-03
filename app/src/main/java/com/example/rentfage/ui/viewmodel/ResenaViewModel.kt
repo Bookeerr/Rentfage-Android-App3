@@ -15,7 +15,8 @@ data class ResenaUiState(
     val comentario: String = "", // Siempre empieza vacío para la nueva reseña
     val reseñaExistente: ResenaEntidad? = null,
     val isLoading: Boolean = true,
-    val saveSuccess: Boolean = false
+    val saveSuccess: Boolean = false,
+    val errorMsg: String? = null // ¡CAMPO AÑADIDO!
 )
 
 class ResenaViewModel(private val resenaRepositorio: ResenaRepositorio) : ViewModel() {
@@ -50,13 +51,18 @@ class ResenaViewModel(private val resenaRepositorio: ResenaRepositorio) : ViewMo
         if (_uiState.value.comentario.isBlank()) return
 
         viewModelScope.launch {
-            resenaRepositorio.enviarResena(userId, _uiState.value.comentario.trim())
-            _uiState.update { it.copy(saveSuccess = true, comentario = "") } // Limpiamos el comentario
-            cargarResenaDeUsuario(userId) // Recargamos para mostrar la nueva reseña abajo
+            try {
+                resenaRepositorio.enviarResena(userId, _uiState.value.comentario.trim())
+                _uiState.update { it.copy(saveSuccess = true, comentario = "") } // Limpiamos el comentario
+                cargarResenaDeUsuario(userId) // Recargamos para mostrar la nueva reseña abajo
+            } catch (e: Exception) {
+                // ¡LÓGICA DE ERROR AÑADIDA!
+                _uiState.update { it.copy(saveSuccess = false, errorMsg = e.message ?: "Error al enviar la reseña") }
+            }
         }
     }
     
     fun resetSaveStatus() {
-        _uiState.update { it.copy(saveSuccess = false) }
+        _uiState.update { it.copy(saveSuccess = false, errorMsg = null) } // ¡SE LIMPIA EL ERROR TAMBIÉN!
     }
 }

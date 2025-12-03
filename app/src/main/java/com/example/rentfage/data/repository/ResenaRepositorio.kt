@@ -5,6 +5,7 @@ import com.example.rentfage.data.local.entity.ResenaEntidad
 import com.example.rentfage.data.remote.RemoteModule
 import com.example.rentfage.data.remote.ResenasApiService
 import com.example.rentfage.data.remote.dto.ResenaDto
+import com.example.rentfage.data.remote.dto.ResenaRequest
 import com.example.rentfage.data.remote.dto.toEntity
 import kotlinx.coroutines.flow.Flow
 import retrofit2.HttpException
@@ -35,28 +36,26 @@ class ResenaRepositorio(
         calificacion: Int = 5,
         propiedadId: Long? = null
     ) {
-        val payload = propiedadId?.let {
-            ResenaDto(
-                id = null,
-                usuarioId = userId.toString(),
-                idPropiedad = it,
-                calificacion = calificacion,
-                comentario = comentario
-            )
-        }
+        // Crear el request con campos opcionales (reseña general)
+        val request = ResenaRequest(
+            usuarioId = userId.toString(),
+            idPropiedad = propiedadId,  // null para reseñas generales
+            calificacion = calificacion,  // null si no hay puntaje
+            comentario = comentario
+        )
 
-        if (payload != null) {
-            val response = resenasApi.crearResena(payload)
-            if (!response.isSuccessful) throw HttpException(response)
-            val saved = response.body()?.toEntity() ?: payload.toEntity()
-            resenaDao.insertar(saved)
-        } else {
-            val resena = ResenaEntidad(
-                userId = userId,
-                comentario = comentario
-            )
-            resenaDao.insertar(resena)
-        }
+        // Siempre enviamos al servidor (incluso si no hay propiedad)
+        val response = resenasApi.crearResena(request)
+        if (!response.isSuccessful) throw HttpException(response)
+
+        // Guardar en BD local después del éxito
+        val resena = ResenaEntidad(
+            userId = userId,
+            propiedadId = propiedadId ?: 0L,
+            calificacion = calificacion,
+            comentario = comentario
+        )
+        resenaDao.insertar(resena)
     }
 
     suspend fun obtenerResenaDeUsuario(userId: Int): ResenaEntidad? {

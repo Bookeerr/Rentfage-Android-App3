@@ -81,10 +81,10 @@ object RemoteModule {
         get() = retrofitFor(8082).create(CasasApiService::class.java)
 
     val resenasApi: ResenasApiService
-        get() = retrofitFor(8083).create(ResenasApiService::class.java)
+        get() = retrofitFor(8084).create(ResenasApiService::class.java)
 
     val comprasApi: ComprasApiService
-        get() = retrofitFor(8084).create(ComprasApiService::class.java)
+        get() = retrofitFor(8083).create(ComprasApiService::class.java)
 
     // --- HELPER PARA CONSTRUIR URLs DE IMÁGENES ---
     /**
