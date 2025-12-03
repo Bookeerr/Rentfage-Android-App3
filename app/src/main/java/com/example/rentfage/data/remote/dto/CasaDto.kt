@@ -3,6 +3,7 @@ package com.example.rentfage.data.remote.dto
 import com.example.rentfage.data.local.entity.CasaEntity
 import com.example.rentfage.data.remote.RemoteModule
 import com.google.gson.annotations.SerializedName
+import java.text.NumberFormat
 import java.util.Locale
 
 data class CasaDto(
@@ -22,7 +23,10 @@ data class CasaDto(
 )
 
 fun CasaDto.toEntity(isFavorite: Boolean = false): CasaEntity {
-    val priceLabel = String.format(Locale.getDefault(), "S/ %.2f", precio)
+    // CORREGIDO: Formato de Pesos Chilenos ($ 150.000.000)
+    val clFormat = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
+    val priceLabel = clFormat.format(precio)
+
     val description = buildString {
         appendLine(titulo)
         descripcion?.takeIf { it.isNotBlank() }?.let {
@@ -32,7 +36,6 @@ fun CasaDto.toEntity(isFavorite: Boolean = false): CasaEntity {
     }.trim()
 
     // CORREGIDO: Usamos RemoteModule para construir la URL de la imagen dinámicamente
-    // Esto asegura que use la misma URL base configurada (192.168.1.5, localhost, o Dev Tunnels)
     val imageUrl = if (id != null) {
         RemoteModule.getImageUrl(id, port = 8082)
     } else {

@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap
 object RemoteModule {
 
     // --- CONFIGURACIÓN DE URL ---
-    private const val DEFAULT_BASE_HOST = "https://922kt3d4-XXXX.brs.devtunnels.ms//"
+    private const val DEFAULT_BASE_HOST = "https://922kt3d4-XXXX.brs.devtunnels.ms/"
     
     // Si quieres volver a usar el emulador con localhost, cambia la línea de arriba por:
     // private const val DEFAULT_BASE_HOST = "http://10.0.2.2"

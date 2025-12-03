@@ -99,24 +99,44 @@ class CasasRepository(
     }
 
     suspend fun actualizarCasa(casa: CasaEntity, imageFile: File? = null) {
-        // Si hay una nueva imagen, intentamos actualizarla en el servidor
-        if (imageFile != null && imageFile.exists() && casa.id > 0) {
+        if (casa.id > 0) {
             try {
-                val requestFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
-                val imagePart = MultipartBody.Part.createFormData("imagen", imageFile.name, requestFile)
-                
-                val response = casasApi.actualizarFotoPropiedad(casa.id.toLong(), imagePart)
-                if (response.isSuccessful) {
-                    // Si la actualización fue exitosa, sincronizamos para obtener la nueva URL
-                    sincronizarCasas()
+                // 1. Si hay imagen nueva, actualizamos la foto (PATCH)
+                if (imageFile != null && imageFile.exists()) {
+                    val requestFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
+                    val imagePart = MultipartBody.Part.createFormData("imagen", imageFile.name, requestFile)
+                    val responseFoto = casasApi.actualizarFotoPropiedad(casa.id.toLong(), imagePart)
+                    if (!responseFoto.isSuccessful) throw HttpException(responseFoto)
                 }
+
+                // 2. SIEMPRE actualizamos los datos de texto (PUT)
+                val precioDouble = casa.price.replace("S/", "").replace(" ", "").toDoubleOrNull() ?: 0.0
+                val dtoParaActualizar = CasaDto(
+                    id = casa.id.toLong(),
+                    titulo = "Casa en ${casa.address}",
+                    descripcion = casa.details,
+                    direccion = casa.address,
+                    precio = precioDouble,
+                    habitaciones = 2,
+                    banos = 1,
+                    area = 60.0,
+                    tipo = "Casa",
+                    estado = "Disponible",
+                    propietarioId = 1
+                )
+                val responseTexto = casasApi.actualizarCasa(casa.id.toLong(), dtoParaActualizar)
+                
+                if (responseTexto.isSuccessful) {
+                    sincronizarCasas()
+                    return
+                }
+
             } catch (e: Exception) {
                 e.printStackTrace()
-                // Si falla, continuamos con la actualización local
             }
         }
         
-        // Actualizamos en la base de datos local
+        // Fallback: Actualizamos en la base de datos local si el servidor falló o no tiene ID válido
         casaDao.actualizar(casa)
     }
     
@@ -125,6 +145,22 @@ class CasasRepository(
     }
 
     suspend fun borrarCasa(casa: CasaEntity) {
+        // Si la casa tiene un ID real (> 0), intentamos borrarla del servidor
+        if (casa.id > 0) {
+            try {
+                val response = casasApi.eliminarPropiedad(casa.id.toLong())
+                if (response.isSuccessful) {
+                    // Si se borró del servidor, sincronizamos para reflejar el cambio
+                    // (esto borrará la casa de la BD local porque ya no viene en la lista del servidor)
+                    sincronizarCasas()
+                    return 
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        
+        // Fallback: La borramos localmente si el servidor falló o es una casa solo local
         casaDao.borrar(casa)
     }
 }
