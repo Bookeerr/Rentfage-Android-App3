@@ -16,7 +16,7 @@ data class ResenaUiState(
     val reseñaExistente: ResenaEntidad? = null,
     val isLoading: Boolean = true,
     val saveSuccess: Boolean = false,
-    val errorMsg: String? = null // ¡CAMPO AÑADIDO!
+    val errorMsg: String? = null
 )
 
 class ResenaViewModel(private val resenaRepositorio: ResenaRepositorio) : ViewModel() {
@@ -52,17 +52,22 @@ class ResenaViewModel(private val resenaRepositorio: ResenaRepositorio) : ViewMo
 
         viewModelScope.launch {
             try {
+                _uiState.update { it.copy(errorMsg = null) }
                 resenaRepositorio.enviarResena(userId, _uiState.value.comentario.trim())
                 _uiState.update { it.copy(saveSuccess = true, comentario = "") } // Limpiamos el comentario
                 cargarResenaDeUsuario(userId) // Recargamos para mostrar la nueva reseña abajo
             } catch (e: Exception) {
-                // ¡LÓGICA DE ERROR AÑADIDA!
-                _uiState.update { it.copy(saveSuccess = false, errorMsg = e.message ?: "Error al enviar la reseña") }
+                _uiState.update { 
+                    it.copy(
+                        errorMsg = "Error al enviar la reseña: ${e.message ?: "Error desconocido"}",
+                        saveSuccess = false
+                    )
+                }
             }
         }
     }
     
     fun resetSaveStatus() {
-        _uiState.update { it.copy(saveSuccess = false, errorMsg = null) } // ¡SE LIMPIA EL ERROR TAMBIÉN!
+        _uiState.update { it.copy(saveSuccess = false, errorMsg = null) }
     }
 }
