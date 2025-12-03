@@ -6,8 +6,10 @@ import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Path
 
 interface CasasApiService {
     // CORREGIDO: Ahora devuelve Response<...> y se llama obtenerPropiedades
@@ -21,4 +23,12 @@ interface CasasApiService {
         @Part imagen: MultipartBody.Part,
         @Part("propiedad") propiedad: RequestBody
     ): Response<CasaDto>
+
+    // Para actualizar la foto de una propiedad existente
+    @Multipart
+    @PATCH("propiedades/{id}/foto")
+    suspend fun actualizarFotoPropiedad(
+        @Path("id") id: Long,
+        @Part imagen: MultipartBody.Part
+    ): Response<Unit>
 }

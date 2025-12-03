@@ -1,6 +1,7 @@
 package com.example.rentfage.data.remote.dto
 
 import com.example.rentfage.data.local.entity.CasaEntity
+import com.example.rentfage.data.remote.RemoteModule
 import com.google.gson.annotations.SerializedName
 import java.util.Locale
 
@@ -30,13 +31,20 @@ fun CasaDto.toEntity(isFavorite: Boolean = false): CasaEntity {
         append("${habitaciones} hab · ${banos} baños · ${area} m² · $tipo")
     }.trim()
 
-    // CORREGIDO: Generamos la URL de la imagen dinámicamente
+    // CORREGIDO: Usamos RemoteModule para construir la URL de la imagen dinámicamente
+    // Esto asegura que use la misma URL base configurada (192.168.1.5, localhost, o Dev Tunnels)
+    val imageUrl = if (id != null) {
+        RemoteModule.getImageUrl(id, port = 8082)
+    } else {
+        "" // Si no hay ID, no hay imagen
+    }
+
     return CasaEntity(
         id = id?.toInt() ?: 0,
         price = priceLabel,
         address = direccion,
         details = description,
-        imageUri = "http://10.0.2.2:8082/propiedades/${id ?: 0}/imagen",
+        imageUri = imageUrl,
         latitude = 0.0,
         longitude = 0.0,
         isFavorite = isFavorite

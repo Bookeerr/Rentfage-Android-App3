@@ -122,11 +122,13 @@ class CasasViewModel(private val casasRepository: CasasRepository) : ViewModel()
         _addEditState.update { it.copy(longitude = newLon, canSubmit = checkCanSubmit(it.copy(longitude = newLon))) }
     }
     fun onImageUriChange(newUri: String?) {
-        _addEditState.update { it.copy(imageUri = newUri, canSubmit = checkCanSubmit(it.copy(imageUri = newUri))) }
+        _addEditState.update { currentState ->
+            val updatedState = currentState.copy(imageUri = newUri)
+            updatedState.copy(canSubmit = checkCanSubmit(updatedState))
+        }
     }
 
     fun saveProperty(id: Int?, context: Context) {
-        // CORRECCIÓN: Validar antes de guardar
         if (!canSubmit()) return
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -145,11 +147,14 @@ class CasasViewModel(private val casasRepository: CasasRepository) : ViewModel()
                 imageUri = state.imageUri ?: ""
             )
 
-            // Convertir URI a File si es necesario
             val imageFile: File? = if (!state.imageUri.isNullOrBlank()) {
                 try {
                     val uri = Uri.parse(state.imageUri)
-                    getFileFromUri(context, uri)
+                    if (uri.scheme == "content" || uri.scheme == "file") {
+                        getFileFromUri(context, uri)
+                    } else {
+                        null 
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                     null
@@ -161,9 +166,7 @@ class CasasViewModel(private val casasRepository: CasasRepository) : ViewModel()
             if (id == null) {
                 casasRepository.insertarCasa(casa, imageFile)
             } else {
-                // Para actualizar, por ahora no actualizamos foto en backend en este flujo,
-                // pero si fuera necesario se podría añadir.
-                casasRepository.actualizarCasa(casa)
+                casasRepository.actualizarCasa(casa, imageFile)
             }
 
             sincronizar()
@@ -193,12 +196,10 @@ class CasasViewModel(private val casasRepository: CasasRepository) : ViewModel()
         _addEditState.value = AddEditCasaState()
     }
     
-    // Helper privado que accede al estado actual
     private fun canSubmit(): Boolean {
         return checkCanSubmit(_addEditState.value)
     }
 
-    // Helper puro para verificar un estado dado (usado al actualizar campos)
     private fun checkCanSubmit(state: AddEditCasaState): Boolean {
         return state.address.isNotBlank() && 
                state.price.isNotBlank() && 

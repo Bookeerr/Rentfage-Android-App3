@@ -98,7 +98,25 @@ class CasasRepository(
         casaDao.insertar(casa)
     }
 
-    suspend fun actualizarCasa(casa: CasaEntity) {
+    suspend fun actualizarCasa(casa: CasaEntity, imageFile: File? = null) {
+        // Si hay una nueva imagen, intentamos actualizarla en el servidor
+        if (imageFile != null && imageFile.exists() && casa.id > 0) {
+            try {
+                val requestFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
+                val imagePart = MultipartBody.Part.createFormData("imagen", imageFile.name, requestFile)
+                
+                val response = casasApi.actualizarFotoPropiedad(casa.id.toLong(), imagePart)
+                if (response.isSuccessful) {
+                    // Si la actualización fue exitosa, sincronizamos para obtener la nueva URL
+                    sincronizarCasas()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Si falla, continuamos con la actualización local
+            }
+        }
+        
+        // Actualizamos en la base de datos local
         casaDao.actualizar(casa)
     }
     
