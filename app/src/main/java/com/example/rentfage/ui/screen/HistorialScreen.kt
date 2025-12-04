@@ -45,6 +45,9 @@ import com.example.rentfage.ui.viewmodel.EstadoSolicitud
 import com.example.rentfage.ui.viewmodel.HistorialViewModel
 import com.example.rentfage.ui.viewmodel.SolicitudUi
 import kotlinx.coroutines.flow.collectLatest
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun HistorialScreen(historialViewModel: HistorialViewModel) {
@@ -142,7 +145,7 @@ fun SolicitudCard(solicitud: SolicitudUi) {
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
-                    text = "Fecha: ${solicitud.fecha}",
+                    text = "Fecha: ${formatearFecha(solicitud.fecha)}",
                     style = MaterialTheme.typography.bodySmall
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -163,6 +166,25 @@ fun SolicitudCard(solicitud: SolicitudUi) {
 
 private fun resourceUri(resourceId: Int): String {
     return "${ContentResolver.SCHEME_ANDROID_RESOURCE}://com.example.rentfage/drawable/$resourceId"
+}
+
+private fun formatearFecha(fecha: String): String {
+    if (fecha.isBlank()) return "Fecha no disponible"
+    
+    return try {
+        // Intentamos parsear formato "yyyy-MM-dd" del backend
+        val formatoEntrada = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val formatoSalida = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val date = formatoEntrada.parse(fecha)
+        if (date != null) {
+            formatoSalida.format(date)
+        } else {
+            fecha // Si no se puede parsear, devolvemos la fecha original
+        }
+    } catch (e: Exception) {
+        // Si ya está en formato "dd/MM/yyyy" o cualquier otro formato, lo devolvemos tal cual
+        fecha
+    }
 }
 
 @Preview(showBackground = true, name = "Historial con datos")
