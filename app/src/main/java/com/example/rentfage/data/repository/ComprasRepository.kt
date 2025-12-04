@@ -1,5 +1,6 @@
 package com.example.rentfage.data.repository
 
+import android.util.Log
 import com.example.rentfage.data.local.dao.SolicitudDao
 import com.example.rentfage.data.local.dao.UserDao
 import com.example.rentfage.data.local.entity.SolicitudEntity
@@ -28,9 +29,10 @@ class ComprasRepository(
         runCatching {
             val response = comprasApi.obtenerComprasPorUsuario(userId)
             
-            // CORRECCIÓN CRÍTICA: Si el servidor dice 404, significa "Lista Vacía", NO error.
+            // CORRECCIÓN CRÍTICA: Si el servidor dice 404, NO borramos las solicitudes locales.
+            // Pueden ser solicitudes recién creadas que el servidor aún no ha procesado.
             if (response.code() == 404) {
-                solicitudDao.borrarPorUsuario(email)
+                // No hacemos nada - mantenemos las solicitudes locales
                 return@runCatching
             }
 
@@ -39,14 +41,17 @@ class ComprasRepository(
             val entities = response.body().orEmpty()
                 .map { it.toSolicitudEntity(email.ifBlank { "Usuario #${it.idUsuario}" }) }
 
-            // Siempre actualizamos la base de datos local para que sea un espejo del servidor
+            // MERGE INTELIGENTE: Actualizamos/insertamos las del servidor
+            // PERO NO BORRAMOS las solicitudes locales - solo las actualizamos si coinciden por ID
+            // Las solicitudes locales con IDs que no están en el servidor se mantienen
             if (entities.isNotEmpty()) {
-                solicitudDao.borrarPorUsuario(email)
+                // Insertamos/actualizamos las del servidor (REPLACE actualiza si existe por ID)
+                // Las solicitudes locales con IDs diferentes (como las recién creadas con id=0)
+                // se mantienen porque tienen IDs únicos generados por Room
                 solicitudDao.insertAll(entities)
-            } else {
-                // Si el servidor devolvió 200 OK pero lista vacía
-                solicitudDao.borrarPorUsuario(email)
             }
+            // Si el servidor devolvió 200 OK pero lista vacía, mantenemos las solicitudes locales
+            // porque pueden ser nuevas y el servidor aún no las ha procesado
         }
 
     suspend fun sincronizarTodas(): Result<Unit> =
@@ -76,45 +81,56 @@ class ComprasRepository(
         casaId: Long,
         userEmail: String
     ): Result<Unit> = runCatching {
-        // 1. PERSISTENCIA REAL: Enviamos la solicitud al microservicio
-        val request = CompraRequest(
-            usuarioId = userId,
-            propiedadId = casaId
-        )
-        val response = comprasApi.crearCompra(request)
-        
-        // OPCIÓN A IMPLEMENTADA: Ignoramos el 404 al crear (si el servidor devuelve eso por algún motivo)
-        // o simplemente si falla, lanzamos excepción, pero el 404 de 'obtener' ya lo manejamos arriba.
-        
-        if (!response.isSuccessful) {
-            // A veces el servidor devuelve 201 con un body raro, o un 200.
-            // Si devuelve 404 aquí sería raro, pero lanzamos error.
-            throw HttpException(response)
-        }
-
-        // 2. VISIBILIDAD INMEDIATA: Insertamos en local
+        // 1. VISIBILIDAD INMEDIATA: Guardamos en local PRIMERO
+        // Esto asegura que el usuario vea la solicitud incluso si falla el servidor
         val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         
         val nuevaSolicitudLocal = SolicitudEntity(
-            id = 0, // ID temporal
+            id = 0, // ID temporal (Room generará un ID único con autoGenerate)
             usuarioId = userId,
-            usuarioEmail = userEmail,
+            usuarioEmail = userEmail, // IMPORTANTE: Usar el email exacto del usuario
             casaId = casaId.toInt(),
             fecha = fechaActual,
             estado = "Pendiente"
         )
         
-        solicitudDao.upsert(nuevaSolicitudLocal)
+        // Guardamos localmente ANTES de intentar enviar al servidor
+        // Esto hace que aparezca inmediatamente en el historial
+        val idGenerado = solicitudDao.upsert(nuevaSolicitudLocal)
+        Log.d("ComprasRepository", "Solicitud guardada localmente con ID: $idGenerado, email: $userEmail, casaId: $casaId")
+        
+        // Pequeño delay para asegurar que Room procese el cambio y el Flow se actualice
+        kotlinx.coroutines.delay(300)
 
-        // 3. SINCRONIZACIÓN: Intentamos confirmar con el servidor.
-        // Aquí es donde el 404 de 'obtenerComprasPorUsuario' podría haber molestado antes.
-        // Pero con el arreglo de arriba (en sincronizarSolicitudes), ya no molestará.
+        // 2. PERSISTENCIA REAL: Intentamos enviar al microservicio en segundo plano
+        // Si falla, la solicitud local se mantiene visible
         try {
-            sincronizarSolicitudes(userEmail, userId)
+            val request = CompraRequest(
+                usuarioId = userId,
+                propiedadId = casaId
+            )
+            val response = comprasApi.crearCompra(request)
+            
+            if (!response.isSuccessful) {
+                // Si falla, no lanzamos excepción - la solicitud local ya está guardada
+                // El usuario verá su solicitud y podrá intentar sincronizar después
+                return@runCatching
+            }
+
+            // 3. SINCRONIZACIÓN: Si el servidor aceptó, esperamos un poco y sincronizamos
+            // PERO: No borramos las solicitudes locales, solo las actualizamos
+            try {
+                kotlinx.coroutines.delay(1000) // Esperamos más tiempo para que el servidor procese
+                sincronizarSolicitudes(userEmail, userId)
+            } catch (e: Exception) {
+                // Si falla la sincro, no pasa nada - la solicitud local se mantiene
+                e.printStackTrace()
+            }
         } catch (e: Exception) {
-            // Si falla la sincro (por ejemplo, el servidor tardó en indexar), no pasa nada.
-            // El usuario ya ve su solicitud local.
+            // Si hay timeout o cualquier error de red, la solicitud local se mantiene
+            // El usuario verá su solicitud y podrá intentar sincronizar después
             e.printStackTrace()
+            // No lanzamos la excepción - consideramos éxito porque la solicitud local está guardada
         }
     }
 

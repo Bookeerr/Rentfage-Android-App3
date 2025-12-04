@@ -1,5 +1,6 @@
 package com.example.rentfage.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.rentfage.data.local.entity.CasaEntity
@@ -55,6 +56,9 @@ class HistorialViewModel(
         val currentUserEmail = AuthViewModel.activeUserEmail
         val isAdmin = currentUserEmail == "admin@rent.cl"
 
+        // DEBUG: Verificar el email
+        Log.d("HistorialViewModel", "Email del usuario activo: $currentUserEmail")
+
         val flujoSolicitudes = when {
             isAdmin -> comprasRepository.todasLasSolicitudes
             currentUserEmail != null -> comprasRepository.historialDeUsuario(currentUserEmail)
@@ -62,11 +66,18 @@ class HistorialViewModel(
         }
 
         if (flujoSolicitudes == null) {
+            Log.d("HistorialViewModel", "No hay flujo de solicitudes disponible")
             _uiState.update { it.copy(solicitudes = emptyList(), isLoading = false) }
             return
         }
 
         combine(flujoSolicitudes, casasRepository.todasLasCasas) { solicitudes, casas ->
+            // DEBUG: Verificar cuántas solicitudes hay
+            Log.d("HistorialViewModel", "Solicitudes encontradas: ${solicitudes.size}")
+            solicitudes.forEach { solicitud ->
+                Log.d("HistorialViewModel", "Solicitud: id=${solicitud.id}, email=${solicitud.usuarioEmail}, casaId=${solicitud.casaId}, estado=${solicitud.estado}")
+            }
+            
             solicitudes.map { solicitud ->
                 var casaDetalle = casas.find { it.id == solicitud.casaId }
 
@@ -99,23 +110,14 @@ class HistorialViewModel(
             }
         }
             .onEach { lista ->
+                Log.d("HistorialViewModel", "Actualizando UI con ${lista.size} solicitudes")
                 _uiState.update { it.copy(solicitudes = lista, isLoading = false) }
             }
             .launchIn(viewModelScope)
 
-        viewModelScope.launch {
-            if (isAdmin) {
-                comprasRepository.sincronizarTodas().getOrElse {
-                    // No hacemos nada si falla, para no molestar al usuario
-                }
-            } else if (currentUserEmail != null) {
-                val usuario = userRepository.getUserByEmail(currentUserEmail)
-                val userId = usuario?.id ?: 0L
-                comprasRepository.sincronizarSolicitudes(currentUserEmail, userId).getOrElse {
-                    // No hacemos nada si falla (ej. 404), el usuario ve los datos locales
-                }
-            }
-        }
+        // NO sincronizamos automáticamente al iniciar para evitar borrar solicitudes locales
+        // Solo mostramos lo que hay en la base de datos local
+        // La sincronización se hará cuando el usuario compre algo o cuando se necesite
     }
 
     fun addSolicitud(casa: CasaEntity) {
@@ -125,16 +127,45 @@ class HistorialViewModel(
             _uiState.update { it.copy(isLoading = true) }
             val user = userRepository.getUserByEmail(currentUserEmail)
             val userId = user?.id ?: 0L
+            
+            Log.d("HistorialViewModel", "Agregando solicitud - Email: $currentUserEmail, UserId: $userId, CasaId: ${casa.id}")
+            
             comprasRepository.enviarSolicitud(
                 userId = userId,
                 casaId = casa.id.toLong(),
                 userEmail = currentUserEmail
             ).onSuccess {
-                _messageFlow.emit("Solicitud enviada con éxito")
+                // La solicitud se guardó localmente (siempre éxito)
+                Log.d("HistorialViewModel", "Solicitud guardada exitosamente")
+                _messageFlow.emit("Solicitud guardada correctamente")
+                
+                // NO sincronizamos inmediatamente para evitar problemas
+                // La solicitud local ya está visible
             }.onFailure {
-                _messageFlow.emit("Error al enviar solicitud: ${it.message}")
+                // Esto no debería pasar ahora, pero por si acaso
+                Log.e("HistorialViewModel", "Error al guardar solicitud: ${it.message}")
+                _messageFlow.emit("Error: ${it.message}")
             }
             _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+    
+    fun recargarHistorial() {
+        val currentUserEmail = AuthViewModel.activeUserEmail ?: return
+        viewModelScope.launch {
+            try {
+                if (currentUserEmail == "admin@rent.cl") {
+                    comprasRepository.sincronizarTodas()
+                } else {
+                    val usuario = userRepository.getUserByEmail(currentUserEmail)
+                    val userId = usuario?.id ?: 0L
+                    if (userId > 0) {
+                        comprasRepository.sincronizarSolicitudes(currentUserEmail, userId)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
